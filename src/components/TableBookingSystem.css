@@ -495,12 +495,14 @@
 .activity-log-modal {
   background: white;
   border-radius: 16px;
-  width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
+  width: 100%;
+  max-width: 700px;
+  height: fit-content;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  margin: auto;
 }
 
 .activity-log-header {
@@ -659,5 +661,84 @@
   .summary {
     flex-direction: column;
     align-items: center;
+  }
+}
+
+/* Activity Log Modal Responsive */
+@media (max-width: 768px) {
+  .activity-log-modal {
+    border-radius: 12px;
+  }
+  
+  .activity-log-header {
+    padding: 16px;
+  }
+  
+  .activity-log-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .activity-log-content {
+    padding: 16px;
+  }
+  
+  .activity-item {
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .activity-message {
+    font-size: 0.9rem;
+  }
+  
+  .activity-time {
+    font-size: 0.75rem;
+    align-self: flex-end;
+  }
+  
+  .activity-log-footer {
+    padding: 16px;
+  }
+  
+  .clear-log-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-log-modal {
+    border-radius: 8px;
+  }
+  
+  .activity-log-header {
+    padding: 12px;
+  }
+  
+  .activity-log-header h3 {
+    font-size: 1rem;
+  }
+  
+  .activity-log-content {
+    padding: 12px;
+  }
+  
+  .activity-item {
+    padding: 8px;
+  }
+  
+  .activity-message {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  
+  .activity-time {
+    font-size: 0.7rem;
+  }
+  
+  .activity-log-footer {
+    padding: 12px;
   }
 }
