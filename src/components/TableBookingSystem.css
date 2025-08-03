@@ -5,6 +5,12 @@
   padding: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+  display: flex;
+  gap: 30px;
+}
+
+.main-content {
+  flex: 1;
 }
 
 .hall-container {
@@ -30,20 +36,63 @@
 .tables-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
 .table-row {
   display: flex;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  width: 100%;
   justify-content: center;
 }
 
-.table-item {
-  width: 80px;
+.table-section {
+  display: flex;
+  gap: 8px;
+}
+
+.left-section {
+  margin-right: 8px;
+}
+
+.right-section {
+  margin-left: 8px;
+}
+
+.aisle {
+  width: 40px;
   height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.aisle-line {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(180deg, #cbd5e0, #a0aec0);
+  border-radius: 2px;
+  position: relative;
+}
+
+.aisle-line::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #4a5568;
+  border-radius: 50%;
+}
+
+.table-item {
+  width: 70px;
+  height: 70px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   display: flex;
@@ -95,18 +144,18 @@
 
 .table-number {
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   margin-bottom: 2px;
 }
 
 .table-status {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 500;
   margin-bottom: 2px;
 }
 
 .booker-name {
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   font-weight: bold;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -148,17 +197,18 @@
 }
 
 .outside-tables {
-  margin: 40px 0;
+  width: 300px;
   padding: 25px;
   background: rgba(248, 250, 252, 0.8);
   border-radius: 12px;
   border: 2px dashed #cbd5e0;
+  height: fit-content;
 }
 
 .outside-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
@@ -167,13 +217,14 @@
   align-items: center;
   gap: 8px;
   color: #4a5568;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   margin: 0;
 }
 
 .add-table-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: linear-gradient(135deg, #4ade80, #22c55e);
   color: white;
@@ -183,6 +234,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .add-table-btn:hover {
@@ -193,7 +245,7 @@
 .outside-tables-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-start;
 }
 
@@ -242,37 +294,57 @@
   color: #007bff;
 }
 
+@media (max-width: 1200px) {
+  .table-booking-system {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .outside-tables {
+    width: 100%;
+  }
+  
+  .outside-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
 @media (max-width: 768px) {
   .table-booking-system {
     padding: 20px;
   }
   
   .table-item {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     font-size: 0.6rem;
   }
   
   .table-number {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   
   .table-status {
-    font-size: 0.5rem;
+    font-size: 0.45rem;
   }
   
   .booker-name {
     font-size: 0.4rem;
   }
   
+  .aisle {
+    width: 30px;
+    height: 50px;
+  }
+  
+  .aisle-line {
+    height: 40px;
+  }
+  
   .summary {
     flex-direction: column;
     align-items: center;
-  }
-  
-  .outside-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
   }
 }

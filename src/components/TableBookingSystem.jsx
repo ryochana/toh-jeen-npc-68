@@ -21,7 +21,7 @@ const TableBookingSystem = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState('create') // 'create', 'edit'
 
-  // สร้างโต๊ะเริ่มต้น 5x12 = 60 โต๊ะ
+  // สร้างโต๊ะเริ่มต้น 10x6 = 60 โต๊ะ (แบ่งเป็น 3+3 คอลัมน์ มีทางเดินตรงกลาง)
   useEffect(() => {
     const savedData = localStorage.getItem('tableBookings')
     if (savedData) {
@@ -31,10 +31,10 @@ const TableBookingSystem = () => {
     } else {
       // สร้างโต๊ะเริ่มต้น
       const initialTables = []
-      for (let row = 1; row <= 5; row++) {
-        for (let col = 1; col <= 12; col++) {
+      for (let row = 1; row <= 10; row++) {
+        for (let col = 1; col <= 6; col++) {
           initialTables.push({
-            id: `T${row}${col.toString().padStart(2, '0')}`,
+            id: `T${row}${col}`,
             row,
             col,
             booking: null,
@@ -172,45 +172,109 @@ const TableBookingSystem = () => {
 
   return (
     <div className="table-booking-system">
-      <div className="hall-container">
-        <div className="stage">
-          <h3>🎭 เวที</h3>
-        </div>
-        
-        <div className="tables-grid">
-          {[1, 2, 3, 4, 5].map(row => (
-            <div key={row} className="table-row">
-              {tables
-                .filter(table => table.row === row)
-                .sort((a, b) => a.col - b.col)
-                .map(table => (
-                  <div
-                    key={table.id}
-                    className={`table-item ${getTableStatusClass(table)}`}
-                    onClick={() => handleTableClick(table)}
-                    title={`โต๊ะ ${table.id} - ${getStatusText(table)}`}
-                  >
-                    <div className="table-number">{table.id}</div>
-                    <div className="table-status">{getStatusText(table)}</div>
-                    {table.booking && (
-                      <div className="booker-name">{table.booking.bookerName}</div>
-                    )}
-                    <div className="table-actions">
-                      <button
-                        className="move-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          moveTableOutside(table.id)
-                        }}
-                        title="ย้ายออกจากหอประชุม"
+      <div className="main-content">
+        <div className="hall-container">
+          <div className="stage">
+            <h3>🎭 เวที</h3>
+          </div>
+          
+          <div className="tables-grid">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(row => (
+              <div key={row} className="table-row">
+                {/* คอลัมน์ซ้าย 3 โต๊ะ */}
+                <div className="table-section left-section">
+                  {tables
+                    .filter(table => table.row === row && table.col <= 3)
+                    .sort((a, b) => a.col - b.col)
+                    .map(table => (
+                      <div
+                        key={table.id}
+                        className={`table-item ${getTableStatusClass(table)}`}
+                        onClick={() => handleTableClick(table)}
+                        title={`โต๊ะ ${table.id} - ${getStatusText(table)}`}
                       >
-                        <ArrowRightLeft size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                        <div className="table-number">{table.id}</div>
+                        <div className="table-status">{getStatusText(table)}</div>
+                        {table.booking && (
+                          <div className="booker-name">{table.booking.bookerName}</div>
+                        )}
+                        <div className="table-actions">
+                          <button
+                            className="move-btn"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              moveTableOutside(table.id)
+                            }}
+                            title="ย้ายออกจากหอประชุม"
+                          >
+                            <ArrowRightLeft size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* ทางเดินตรงกลาง */}
+                <div className="aisle">
+                  <div className="aisle-line"></div>
+                </div>
+
+                {/* คอลัมน์ขวา 3 โต๊ะ */}
+                <div className="table-section right-section">
+                  {tables
+                    .filter(table => table.row === row && table.col > 3)
+                    .sort((a, b) => a.col - b.col)
+                    .map(table => (
+                      <div
+                        key={table.id}
+                        className={`table-item ${getTableStatusClass(table)}`}
+                        onClick={() => handleTableClick(table)}
+                        title={`โต๊ะ ${table.id} - ${getStatusText(table)}`}
+                      >
+                        <div className="table-number">{table.id}</div>
+                        <div className="table-status">{getStatusText(table)}</div>
+                        {table.booking && (
+                          <div className="booker-name">{table.booking.bookerName}</div>
+                        )}
+                        <div className="table-actions">
+                          <button
+                            className="move-btn"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              moveTableOutside(table.id)
+                            }}
+                            title="ย้ายออกจากหอประชุม"
+                          >
+                            <ArrowRightLeft size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="summary">
+          <div className="summary-item">
+            <div className="summary-icon available">
+              <Users size={16} />
             </div>
-          ))}
+            <span>ว่าง: {tables.filter(t => !t.booking).length + outsideTables.filter(t => !t.booking).length}</span>
+          </div>
+          <div className="summary-item">
+            <div className="summary-icon booked">
+              <Users size={16} />
+            </div>
+            <span>จองแล้ว: {tables.filter(t => t.booking && !t.booking.isPaid).length + outsideTables.filter(t => t.booking && !t.booking.isPaid).length}</span>
+          </div>
+          <div className="summary-item">
+            <div className="summary-icon paid">
+              <CreditCard size={16} />
+            </div>
+            <span>จ่ายแล้ว: {tables.filter(t => t.booking && t.booking.isPaid).length + outsideTables.filter(t => t.booking && t.booking.isPaid).length}</span>
+          </div>
         </div>
       </div>
 
@@ -263,27 +327,6 @@ const TableBookingSystem = () => {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      <div className="summary">
-        <div className="summary-item">
-          <div className="summary-icon available">
-            <Users size={16} />
-          </div>
-          <span>ว่าง: {tables.filter(t => !t.booking).length + outsideTables.filter(t => !t.booking).length}</span>
-        </div>
-        <div className="summary-item">
-          <div className="summary-icon booked">
-            <Users size={16} />
-          </div>
-          <span>จองแล้ว: {tables.filter(t => t.booking && !t.booking.isPaid).length + outsideTables.filter(t => t.booking && !t.booking.isPaid).length}</span>
-        </div>
-        <div className="summary-item">
-          <div className="summary-icon paid">
-            <CreditCard size={16} />
-          </div>
-          <span>จ่ายแล้ว: {tables.filter(t => t.booking && t.booking.isPaid).length + outsideTables.filter(t => t.booking && t.booking.isPaid).length}</span>
         </div>
       </div>
 
