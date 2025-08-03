@@ -294,6 +294,23 @@
   color: #007bff;
 }
 
+.reset-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #ee5a24, #d63031);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 1200px) {
   .table-booking-system {
     flex-direction: column;

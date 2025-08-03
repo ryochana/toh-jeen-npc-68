@@ -87,7 +87,7 @@ const TableBookingSystem = () => {
         setOutsideTables(updatedOutside)
       }
       
-      toast.success(`จองโต๊ะ ${selectedTable.id} สำเร็จ`)
+      toast.success(`จองโต๊ะ ${selectedTable.displayName || selectedTable.id} สำเร็จ`)
     } else {
       const updatedTables = tables.map(table =>
         table.id === selectedTable.id
@@ -106,7 +106,7 @@ const TableBookingSystem = () => {
         setOutsideTables(updatedOutside)
       }
       
-      toast.success(`แก้ไขข้อมูลโต๊ะ ${selectedTable.id} สำเร็จ`)
+      toast.success(`แก้ไขข้อมูลโต๊ะ ${selectedTable.displayName || selectedTable.id} สำเร็จ`)
     }
     setIsModalOpen(false)
   }
@@ -131,7 +131,7 @@ const TableBookingSystem = () => {
       const newOutsideTable = { ...table, position: 'outside' }
       setOutsideTables([...outsideTables, newOutsideTable])
       setTables(tables.filter(t => t.id !== tableId))
-      toast.success(`ย้ายโต๊ะ ${tableId} ออกจากหอประชุม`)
+      toast.success(`ย้ายโต๊ะ ${table.displayName || tableId} ออกจากหอประชุม`)
     }
   }
 
@@ -144,7 +144,7 @@ const TableBookingSystem = () => {
         return a.col - b.col
       }))
       setOutsideTables(outsideTables.filter(t => t.id !== tableId))
-      toast.success(`ย้ายโต๊ะ ${tableId} กลับเข้าหอประชุม`)
+      toast.success(`ย้ายโต๊ะ ${table.displayName || tableId} กลับเข้าหอประชุม`)
     }
   }
 
@@ -186,6 +186,9 @@ const TableBookingSystem = () => {
       <div className="main-content">
         <div className="hall-container">
           <div className="stage">
+            <h3>🎭 เวที</h3>
+          </div>
+          
           <div className="tables-grid">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(row => (
               <div key={row} className="table-row">
@@ -260,9 +263,6 @@ const TableBookingSystem = () => {
                     ))}
                 </div>
               </div>
-            ))}     ))}
-                </div>
-              </div>
             ))}
           </div>
         </div>
@@ -313,7 +313,7 @@ const TableBookingSystem = () => {
               className={`table-item ${getTableStatusClass(table)}`}
               onClick={() => handleTableClick(table)}
             >
-              <div className="table-number">{table.id}</div>
+              <div className="table-number">{table.displayName || table.id}</div>
               <div className="table-status">{getStatusText(table)}</div>
               {table.booking && (
                 <div className="booker-name">{table.booking.bookerName}</div>
@@ -334,7 +334,7 @@ const TableBookingSystem = () => {
                   onClick={(e) => {
                     e.stopPropagation()
                     setOutsideTables(outsideTables.filter(t => t.id !== table.id))
-                    toast.success(`ลบโต๊ะ ${table.id}`)
+                    toast.success(`ลบโต๊ะ ${table.displayName || table.id}`)
                   }}
                   title="ลบโต๊ะ"
                 >
