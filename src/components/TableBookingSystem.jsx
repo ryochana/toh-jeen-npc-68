@@ -97,6 +97,20 @@ const TableBookingSystem = () => {
     setActivityLog(prev => [newActivity, ...prev.slice(0, 49)]) // เก็บแค่ 50 รายการล่าสุด
   }
 
+  // จัดการ Modal เปิด/ปิด
+  useEffect(() => {
+    if (isModalOpen || showActivityLog) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    
+    // Cleanup เมื่อ component unmount
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isModalOpen, showActivityLog])
+
   const handleTableClick = (table) => {
     if (isDragMode) {
       // โหมดลาก
