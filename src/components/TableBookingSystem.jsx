@@ -32,7 +32,7 @@ const TableBookingSystem = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [lastSyncTime, setLastSyncTime] = useState(null)
 
-  // สร้างโต๊ะเริ่มต้น 10 แถว x 6 โต๊ะ = 60 โต๊ะ (แบ่งเป็น 3+3 คอลัมน์ มีทางเดินตรงกลาง)
+  // สร้างโต๊ะเริ่มต้น 11 แถว x 5 โต๊ะ = 55 โต๊ะ (แบ่งเป็น 2+3 คอลัมน์ มีทางเดินตรงกลาง)
   useEffect(() => {
     const savedData = localStorage.getItem('tableBookings')
     console.log('🔍 ข้อมูลที่โหลดจาก localStorage:', savedData ? JSON.parse(savedData) : 'ไม่มีข้อมูล')
@@ -48,12 +48,12 @@ const TableBookingSystem = () => {
         activityLog: savedLog?.length || 0 
       })
     } else {
-      // สร้างโต๊ะเริ่มต้น
+      // สร้างโต๊ะเริ่มต้น 11 แถว x 5 โต๊ะ = 55 โต๊ะ (แบ่งเป็น 2+3 คอลัมน์ มีทางเดินตรงกลาง)
       console.log('🎯 สร้างข้อมูลเริ่มต้น')
       const initialTables = []
       let tableNumber = 1
-      for (let row = 1; row <= 10; row++) {
-        for (let col = 1; col <= 6; col++) {
+      for (let row = 1; row <= 11; row++) {
+        for (let col = 1; col <= 5; col++) {
           initialTables.push({
             id: `${tableNumber.toString().padStart(2, '0')}`,
             displayName: `โต๊ะ ${tableNumber.toString().padStart(2, '0')}`,
@@ -66,7 +66,7 @@ const TableBookingSystem = () => {
         }
       }
       setTables(initialTables)
-      addToActivityLog('🎯 เริ่มต้นระบบจองโต๊ะ - สร้างโต๊ะเริ่มต้น 60 โต๊ะ')
+      addToActivityLog('🎯 เริ่มต้นระบบจองโต๊ะ - สร้างโต๊ะเริ่มต้น 55 โต๊ะ')
     }
   }, [])
 
@@ -349,7 +349,7 @@ const TableBookingSystem = () => {
     let positionFound = false
     
     for (let row = 1; row <= 20; row++) { // เพิ่มแถวได้ถึง 20
-      for (let col = 1; col <= 6; col++) {
+      for (let col = 1; col <= 5; col++) {
         const existingTable = tables.find(t => t.row === row && t.col === col)
         if (!existingTable) {
           newRow = row
@@ -476,8 +476,8 @@ const TableBookingSystem = () => {
       const initialTables = []
       let tableNumber = 1
       
-      for (let row = 1; row <= 10; row++) {
-        for (let col = 1; col <= 6; col++) {
+      for (let row = 1; row <= 11; row++) {
+        for (let col = 1; col <= 5; col++) {
           const tableId = `${tableNumber.toString().padStart(2, '0')}`
           
           // ตรวจสอบว่ามีโต๊ะนี้อยู่แล้วหรือไม่
@@ -555,12 +555,12 @@ const TableBookingSystem = () => {
           </div>
           
           <div className="tables-grid">
-            {Array.from({length: Math.max(10, Math.max(...tables.map(t => t.row), 0))}, (_, i) => i + 1).map(row => (
+            {Array.from({length: Math.max(11, Math.max(...tables.map(t => t.row), 0))}, (_, i) => i + 1).map(row => (
               <div key={row} className="table-row">
-                {/* คอลัมน์ซ้าย 3 โต๊ะ */}
+                {/* คอลัมน์ซ้าย 2 โต๊ะ */}
                 <div className="table-section left-section">
                   {tables
-                    .filter(table => table.row === row && table.col <= 3)
+                    .filter(table => table.row === row && table.col <= 2)
                     .sort((a, b) => a.col - b.col)
                     .map(table => (
                       <div
@@ -606,7 +606,7 @@ const TableBookingSystem = () => {
                     ))}
                   
                   {/* พื้นที่วางโต๊ะในโหมดลาก - ซ้าย */}
-                  {isDragMode && draggedTable && [1, 2, 3].map(col => {
+                  {isDragMode && draggedTable && [1, 2].map(col => {
                     const hasTable = tables.some(t => t.row === row && t.col === col)
                     if (hasTable) return null
                     return (
@@ -630,7 +630,7 @@ const TableBookingSystem = () => {
                 {/* คอลัมน์ขวา 3 โต๊ะ */}
                 <div className="table-section right-section">
                   {tables
-                    .filter(table => table.row === row && table.col > 3)
+                    .filter(table => table.row === row && table.col > 2)
                     .sort((a, b) => a.col - b.col)
                     .map(table => (
                       <div
@@ -676,7 +676,7 @@ const TableBookingSystem = () => {
                     ))}
                   
                   {/* พื้นที่วางโต๊ะในโหมดลาก - ขวา */}
-                  {isDragMode && draggedTable && [4, 5, 6].map(col => {
+                  {isDragMode && draggedTable && [3, 4, 5].map(col => {
                     const hasTable = tables.some(t => t.row === row && t.col === col)
                     if (hasTable) return null
                     return (
