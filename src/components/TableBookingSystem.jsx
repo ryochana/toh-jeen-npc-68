@@ -70,7 +70,7 @@ const TableBookingSystem = () => {
     }
   }, [])
 
-  // บันทึกข้อมูลลง localStorage
+  // บันทึกข้อมูลลง localStorage และ sync ไป Google Sheets อัตโนมัติ
   useEffect(() => {
     if (tables.length > 0 || outsideTables.length > 0) {
       const dataToSave = { tables, outsideTables, activityLog }
@@ -81,6 +81,11 @@ const TableBookingSystem = () => {
         activityLog: activityLog.length,
         timestamp: new Date().toLocaleString('th-TH')
       })
+      
+      // Auto sync ไป Google Sheets ทุกครั้งที่มีการเปลี่ยนแปลงข้อมูล
+      if (isOnline) {
+        syncToGoogleSheets()
+      }
     }
   }, [tables, outsideTables, activityLog])
 
@@ -154,10 +159,10 @@ const TableBookingSystem = () => {
     }
   }, [tables, outsideTables, activityLog])
 
-  // ฟังก์ชัน Sync ข้อมูลไป Google Sheets
-  const syncToGoogleSheets = async () => {
+  // ฟังก์ชัน Sync ข้อมูลไป Google Sheets (เงียบ ๆ ไม่แสดง toast)
+  const syncToGoogleSheets = async (showNotification = false) => {
     if (!isOnline) {
-      toast.error('ไม่สามารถ sync ได้ - ไม่มีอินเทอร์เน็ต')
+      console.log('⚠️ ไม่สามารถ sync ได้ - ไม่มีอินเทอร์เน็ต')
       return
     }
 
@@ -165,23 +170,19 @@ const TableBookingSystem = () => {
       await googleSheetsService.initialize()
       await googleSheetsService.syncAllData(tables, outsideTables, activityLog)
       setLastSyncTime(new Date())
-      toast.success('📊 Sync ข้อมูลไป Google Sheets สำเร็จ')
+      console.log('✅ Auto sync ไป Google Sheets สำเร็จ')
+      if (showNotification) {
+        toast.success('📊 Sync ข้อมูลไป Google Sheets สำเร็จ')
+      }
     } catch (error) {
       console.error('Sync error:', error)
-      toast.error('❌ Sync ข้อมูลล้มเหลว - ใช้ localStorage แทน')
+      if (showNotification) {
+        toast.error('❌ Sync ข้อมูลล้มเหลว - ใช้ localStorage แทน')
+      }
     }
   }
 
-  // Auto sync ทุก 5 นาที
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isOnline && (tables.length > 0 || outsideTables.length > 0)) {
-        syncToGoogleSheets()
-      }
-    }, 5 * 60 * 1000) // 5 minutes
-
-    return () => clearInterval(interval)
-  }, [tables, outsideTables, activityLog, isOnline])
+  // ลบ auto sync ทุก 5 นาที - ให้ sync เฉพาะตอนมีการเปลี่ยนแปลงข้อมูล
 
   const handleTableClick = (table) => {
     if (isDragMode) {
@@ -717,7 +718,7 @@ const TableBookingSystem = () => {
               {isOnline ? (
                 <div className="online-status">
                   <Cloud size={16} />
-                  <span>Online</span>
+                  <span>Online - Auto Sync</span>
                 </div>
               ) : (
                 <div className="offline-status">
@@ -727,17 +728,10 @@ const TableBookingSystem = () => {
               )}
               {lastSyncTime && (
                 <div className="last-sync">
-                  Sync: {lastSyncTime.toLocaleTimeString('th-TH')}
+                  Last: {lastSyncTime.toLocaleTimeString('th-TH')}
                 </div>
               )}
             </div>
-            <button 
-              className="sync-btn"
-              onClick={syncToGoogleSheets}
-              disabled={!isOnline}
-            >
-              📊 Sync Sheets
-            </button>
           </div>
         </div>
 
