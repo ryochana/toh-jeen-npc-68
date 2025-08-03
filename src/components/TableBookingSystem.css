@@ -13,6 +13,41 @@
   flex: 1;
 }
 
+/* Top Controls */
+.top-controls {
+  margin-bottom: 20px;
+}
+
+.top-left-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.activity-log-btn, .undo-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.activity-log-btn:hover, .undo-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.undo-btn {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.undo-btn:hover {
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
 .hall-container {
   margin-bottom: 40px;
 }
@@ -454,6 +489,117 @@
 /* ซ่อนปุ่มขณะอยู่ในโหมดลาก */
 .table-item.drag-mode .table-actions {
   display: none;
+}
+
+/* Activity Log Modal */
+.activity-log-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.activity-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.activity-log-header h3 {
+  margin: 0;
+  color: #1a202c;
+  font-size: 1.2rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #1a202c;
+}
+
+.activity-log-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.no-activity {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 40px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.activity-message {
+  font-weight: 500;
+  color: #1a202c;
+  flex: 1;
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.activity-log-footer {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.clear-log-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-log-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 @media (max-width: 1200px) {
