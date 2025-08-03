@@ -169,6 +169,42 @@ const TableBookingSystem = () => {
     }
   }
 
+  const restoreAllTables = () => {
+    if (confirm('ต้องการสร้างโต๊ะทั้งหมดคืนหรือไม่? (จะไม่ลบข้อมูลการจองที่มีอยู่)')) {
+      const initialTables = []
+      let tableNumber = 1
+      
+      for (let row = 1; row <= 10; row++) {
+        for (let col = 1; col <= 6; col++) {
+          const tableId = `${tableNumber.toString().padStart(2, '0')}`
+          
+          // ตรวจสอบว่ามีโต๊ะนี้อยู่แล้วหรือไม่
+          const existingTable = tables.find(t => t.id === tableId) || 
+                               outsideTables.find(t => t.id === tableId)
+          
+          if (!existingTable) {
+            initialTables.push({
+              id: tableId,
+              displayName: `โต๊ะ ${tableId}`,
+              row,
+              col,
+              booking: null,
+              position: 'inside'
+            })
+          }
+          tableNumber++
+        }
+      }
+      
+      setTables([...tables, ...initialTables].sort((a, b) => {
+        if (a.row !== b.row) return a.row - b.row
+        return a.col - b.col
+      }))
+      
+      toast.success(`สร้างโต๊ะคืน ${initialTables.length} โต๊ะ`)
+    }
+  }
+
   const getTableStatusClass = (table) => {
     if (!table.booking) return 'table-available'
     if (table.booking.isPaid) return 'table-paid'
@@ -186,6 +222,9 @@ const TableBookingSystem = () => {
       <div className="main-content">
         <div className="hall-container">
           <div className="stage">
+            <h3>🎭 เวที</h3>
+          </div>
+          
           <div className="tables-grid">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(row => (
               <div key={row} className="table-row">
@@ -260,9 +299,6 @@ const TableBookingSystem = () => {
                     ))}
                 </div>
               </div>
-            ))}     ))}
-                </div>
-              </div>
             ))}
           </div>
         </div>
@@ -291,6 +327,11 @@ const TableBookingSystem = () => {
               🔄 รีเซ็ตระบบ
             </button>
           </div>
+          <div className="summary-item">
+            <button className="restore-btn" onClick={restoreAllTables}>
+              ➕ สร้างโต๊ะคืน
+            </button>
+          </div>
         </div>
       </div>
 
@@ -313,7 +354,7 @@ const TableBookingSystem = () => {
               className={`table-item ${getTableStatusClass(table)}`}
               onClick={() => handleTableClick(table)}
             >
-              <div className="table-number">{table.id}</div>
+              <div className="table-number">{table.displayName || table.id}</div>
               <div className="table-status">{getStatusText(table)}</div>
               {table.booking && (
                 <div className="booker-name">{table.booking.bookerName}</div>
@@ -334,7 +375,7 @@ const TableBookingSystem = () => {
                   onClick={(e) => {
                     e.stopPropagation()
                     setOutsideTables(outsideTables.filter(t => t.id !== table.id))
-                    toast.success(`ลบโต๊ะ ${table.id}`)
+                    toast.success(`ลบโต๊ะ ${table.displayName || table.id}`)
                   }}
                   title="ลบโต๊ะ"
                 >
