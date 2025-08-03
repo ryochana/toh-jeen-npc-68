@@ -9,9 +9,12 @@ import {
   X, 
   ArrowRightLeft,
   MapPin,
-  CreditCard
+  CreditCard,
+  Cloud,
+  CloudOff
 } from 'lucide-react'
 import BookingModal from './BookingModal'
+import googleSheetsService from '../services/googleSheetsService'
 import './TableBookingSystem.css'
 
 const TableBookingSystem = () => {
@@ -26,17 +29,27 @@ const TableBookingSystem = () => {
   const [showActivityLog, setShowActivityLog] = useState(false)
   const [lastState, setLastState] = useState(null)
   const [canUndo, setCanUndo] = useState(false)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [lastSyncTime, setLastSyncTime] = useState(null)
 
   // สร้างโต๊ะเริ่มต้น 10 แถว x 6 โต๊ะ = 60 โต๊ะ (แบ่งเป็น 3+3 คอลัมน์ มีทางเดินตรงกลาง)
   useEffect(() => {
     const savedData = localStorage.getItem('tableBookings')
+    console.log('🔍 ข้อมูลที่โหลดจาก localStorage:', savedData ? JSON.parse(savedData) : 'ไม่มีข้อมูล')
+    
     if (savedData) {
       const { tables: savedTables, outsideTables: savedOutside, activityLog: savedLog } = JSON.parse(savedData)
       setTables(savedTables || [])
       setOutsideTables(savedOutside || [])
       setActivityLog(savedLog || [])
+      console.log('✅ โหลดข้อมูลสำเร็จ:', { 
+        tables: savedTables?.length || 0, 
+        outsideTables: savedOutside?.length || 0, 
+        activityLog: savedLog?.length || 0 
+      })
     } else {
       // สร้างโต๊ะเริ่มต้น
+      console.log('🎯 สร้างข้อมูลเริ่มต้น')
       const initialTables = []
       let tableNumber = 1
       for (let row = 1; row <= 10; row++) {
@@ -60,7 +73,14 @@ const TableBookingSystem = () => {
   // บันทึกข้อมูลลง localStorage
   useEffect(() => {
     if (tables.length > 0 || outsideTables.length > 0) {
-      localStorage.setItem('tableBookings', JSON.stringify({ tables, outsideTables, activityLog }))
+      const dataToSave = { tables, outsideTables, activityLog }
+      localStorage.setItem('tableBookings', JSON.stringify(dataToSave))
+      console.log('💾 บันทึกข้อมูลแล้ว:', { 
+        tables: tables.length, 
+        outsideTables: outsideTables.length, 
+        activityLog: activityLog.length,
+        timestamp: new Date().toLocaleString('th-TH')
+      })
     }
   }, [tables, outsideTables, activityLog])
 
@@ -110,6 +130,58 @@ const TableBookingSystem = () => {
       document.body.classList.remove('modal-open')
     }
   }, [isModalOpen, showActivityLog])
+
+  // ตรวจสอบสถานะ Online/Offline
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true)
+      toast.success('🌐 เชื่อมต่ออินเทอร์เน็ตแล้ว')
+      // Auto sync when back online
+      syncToGoogleSheets()
+    }
+    
+    const handleOffline = () => {
+      setIsOnline(false)
+      toast.error('📱 ใช้งานแบบออฟไลน์')
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [tables, outsideTables, activityLog])
+
+  // ฟังก์ชัน Sync ข้อมูลไป Google Sheets
+  const syncToGoogleSheets = async () => {
+    if (!isOnline) {
+      toast.error('ไม่สามารถ sync ได้ - ไม่มีอินเทอร์เน็ต')
+      return
+    }
+
+    try {
+      await googleSheetsService.initialize()
+      await googleSheetsService.syncAllData(tables, outsideTables, activityLog)
+      setLastSyncTime(new Date())
+      toast.success('📊 Sync ข้อมูลไป Google Sheets สำเร็จ')
+    } catch (error) {
+      console.error('Sync error:', error)
+      toast.error('❌ Sync ข้อมูลล้มเหลว - ใช้ localStorage แทน')
+    }
+  }
+
+  // Auto sync ทุก 5 นาที
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isOnline && (tables.length > 0 || outsideTables.length > 0)) {
+        syncToGoogleSheets()
+      }
+    }, 5 * 60 * 1000) // 5 minutes
+
+    return () => clearInterval(interval)
+  }, [tables, outsideTables, activityLog, isOnline])
 
   const handleTableClick = (table) => {
     if (isDragMode) {
@@ -446,6 +518,33 @@ const TableBookingSystem = () => {
     return 'จองแล้ว'
   }
 
+  // ฟังก์ชันสำหรับ Export JSON
+  const exportData = () => {
+    const data = { tables, outsideTables, activityLog }
+    const dataStr = JSON.stringify(data, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `table-bookings-${new Date().toISOString().split('T')[0]}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    toast.success('📥 Export ข้อมูล JSON สำเร็จ')
+  }
+
+  // ฟังก์ชันสำหรับแสดงข้อมูล JSON ใน Console
+  const showDataInConsole = () => {
+    const data = { tables, outsideTables, activityLog }
+    console.log('📊 ข้อมูลปัจจุบัน:', data)
+    console.table(tables.filter(t => t.booking).map(t => ({
+      โต๊ะ: t.displayName,
+      ผู้จอง: t.booking.bookerName,
+      เบอร์: t.booking.phone,
+      จ่ายแล้ว: t.booking.isPaid ? 'ใช่' : 'ไม่'
+    })))
+    toast.success('📋 ดูข้อมูลใน Console แล้ว (กด F12)')
+  }
+
   return (
     <div className="table-booking-system">
       <div className="main-content">
@@ -613,6 +712,33 @@ const TableBookingSystem = () => {
               </button>
             )}
           </div>
+          <div className="top-right-controls">
+            <div className="sync-status">
+              {isOnline ? (
+                <div className="online-status">
+                  <Cloud size={16} />
+                  <span>Online</span>
+                </div>
+              ) : (
+                <div className="offline-status">
+                  <CloudOff size={16} />
+                  <span>Offline</span>
+                </div>
+              )}
+              {lastSyncTime && (
+                <div className="last-sync">
+                  Sync: {lastSyncTime.toLocaleTimeString('th-TH')}
+                </div>
+              )}
+            </div>
+            <button 
+              className="sync-btn"
+              onClick={syncToGoogleSheets}
+              disabled={!isOnline}
+            >
+              📊 Sync Sheets
+            </button>
+          </div>
         </div>
 
         <div className="summary">
@@ -650,6 +776,16 @@ const TableBookingSystem = () => {
           <div className="summary-item">
             <button className="restore-btn" onClick={restoreAllTables}>
               🔄 สร้างโต๊ะคืน
+            </button>
+          </div>
+          <div className="summary-item">
+            <button className="export-btn" onClick={exportData}>
+              📥 Export JSON
+            </button>
+          </div>
+          <div className="summary-item">
+            <button className="console-btn" onClick={showDataInConsole}>
+              📋 ดู Console
             </button>
           </div>
         </div>
