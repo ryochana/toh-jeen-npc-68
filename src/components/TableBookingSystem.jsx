@@ -20,6 +20,8 @@ const TableBookingSystem = () => {
   const [selectedTable, setSelectedTable] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState('create') // 'create', 'edit'
+  const [isDragMode, setIsDragMode] = useState(false)
+  const [draggedTable, setDraggedTable] = useState(null)
 
   // สร้างโต๊ะเริ่มต้น 10 แถว x 6 โต๊ะ = 60 โต๊ะ (แบ่งเป็น 3+3 คอลัมน์ มีทางเดินตรงกลาง)
   useEffect(() => {
@@ -57,6 +59,20 @@ const TableBookingSystem = () => {
   }, [tables, outsideTables])
 
   const handleTableClick = (table) => {
+    if (isDragMode) {
+      // โหมดลาก: เลือกโต๊ะที่จะลาก
+      if (draggedTable && draggedTable.id === table.id) {
+        // ยกเลิกการลาก
+        setDraggedTable(null)
+        toast.info('ยกเลิกการลากโต๊ะ')
+      } else {
+        setDraggedTable(table)
+        toast.info(`เลือกโต๊ะ ${table.displayName || table.id} สำหรับลาก`)
+      }
+      return
+    }
+
+    // โหมดปกติ: เปิด modal
     if (table.booking) {
       setSelectedTable(table)
       setModalMode('edit')
@@ -162,11 +178,69 @@ const TableBookingSystem = () => {
     toast.success(`เพิ่มโต๊ะนอกหอประชุม ${newId}`)
   }
 
-  const clearAllData = () => {
-    if (confirm('ต้องการลบข้อมูลทั้งหมดและรีเซ็ตระบบหรือไม่?')) {
-      localStorage.removeItem('tableBookings')
-      window.location.reload()
+  const addNewTable = () => {
+    const allTables = [...tables, ...outsideTables]
+    const maxId = Math.max(...allTables.map(t => {
+      const num = parseInt(t.id.replace(/[^0-9]/g, ''))
+      return isNaN(num) ? 0 : num
+    }), 60)
+    
+    const newId = `${(maxId + 1).toString().padStart(2, '0')}`
+    const newTable = {
+      id: newId,
+      displayName: `โต๊ะ ${newId}`,
+      row: Math.ceil((maxId + 1) / 6),
+      col: ((maxId) % 6) + 1,
+      booking: null,
+      position: 'inside'
     }
+    
+    setTables([...tables, newTable].sort((a, b) => {
+      if (a.row !== b.row) return a.row - b.row
+      return a.col - b.col
+    }))
+    toast.success(`เพิ่มโต๊ะใหม่ ${newId}`)
+  }
+
+  const toggleDragMode = () => {
+    setIsDragMode(!isDragMode)
+    setDraggedTable(null)
+    if (!isDragMode) {
+      toast.info('🎯 โหมดลากโต๊ะ: คลิกโต๊ะที่ต้องการลาก แล้วคลิกตำแหน่งที่ต้องการวาง')
+    } else {
+      toast.info('กลับสู่โหมดปกติ')
+    }
+  }
+
+  const handleTableDrop = (targetRow, targetCol, targetPosition) => {
+    if (!draggedTable) return
+
+    const newTable = {
+      ...draggedTable,
+      row: targetRow,
+      col: targetCol,
+      position: targetPosition
+    }
+
+    // ลบโต๊ะเดิม
+    if (draggedTable.position === 'inside') {
+      setTables(tables.filter(t => t.id !== draggedTable.id))
+    } else {
+      setOutsideTables(outsideTables.filter(t => t.id !== draggedTable.id))
+    }
+
+    // เพิ่มโต๊ะในตำแหน่งใหม่
+    if (targetPosition === 'inside') {
+      setTables([...tables.filter(t => t.id !== draggedTable.id), newTable].sort((a, b) => {
+        if (a.row !== b.row) return a.row - b.row
+        return a.col - b.col
+      }))
+    } else {
+      setOutsideTables([...outsideTables.filter(t => t.id !== draggedTable.id), newTable])
+    }
+
+    toast.success(`ย้ายโต๊ะ ${draggedTable.displayName || draggedTable.id} สำเร็จ`)
+    setDraggedTable(null)
   }
 
   const restoreAllTables = () => {
@@ -236,7 +310,11 @@ const TableBookingSystem = () => {
                     .map(table => (
                       <div
                         key={table.id}
-                        className={`table-item ${getTableStatusClass(table)}`}
+                        className={`table-item ${getTableStatusClass(table)} ${
+                          isDragMode ? 'drag-mode' : ''
+                        } ${
+                          draggedTable && draggedTable.id === table.id ? 'dragged' : ''
+                        }`}
                         onClick={() => handleTableClick(table)}
                         title={`${table.displayName || table.id} - ${getStatusText(table)}`}
                       >
@@ -245,20 +323,38 @@ const TableBookingSystem = () => {
                         {table.booking && (
                           <div className="booker-name">{table.booking.bookerName}</div>
                         )}
-                        <div className="table-actions">
-                          <button
-                            className="move-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              moveTableOutside(table.id)
-                            }}
-                            title="ย้ายออกจากหอประชุม"
-                          >
-                            <ArrowRightLeft size={12} />
-                          </button>
-                        </div>
+                        {!isDragMode && (
+                          <div className="table-actions">
+                            <button
+                              className="move-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                moveTableOutside(table.id)
+                              }}
+                              title="ย้ายออกจากหอประชุม"
+                            >
+                              <ArrowRightLeft size={12} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
+                  
+                  {/* พื้นที่วางโต๊ะในโหมดลาก - ซ้าย */}
+                  {isDragMode && draggedTable && [1, 2, 3].map(col => {
+                    const hasTable = tables.some(t => t.row === row && t.col === col)
+                    if (hasTable) return null
+                    return (
+                      <div
+                        key={`drop-${row}-${col}`}
+                        className="drop-zone"
+                        onClick={() => handleTableDrop(row, col, 'inside')}
+                        title="คลิกเพื่อวางโต๊ะที่นี่"
+                      >
+                        📍
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* ทางเดินตรงกลาง */}
@@ -274,7 +370,11 @@ const TableBookingSystem = () => {
                     .map(table => (
                       <div
                         key={table.id}
-                        className={`table-item ${getTableStatusClass(table)}`}
+                        className={`table-item ${getTableStatusClass(table)} ${
+                          isDragMode ? 'drag-mode' : ''
+                        } ${
+                          draggedTable && draggedTable.id === table.id ? 'dragged' : ''
+                        }`}
                         onClick={() => handleTableClick(table)}
                         title={`${table.displayName || table.id} - ${getStatusText(table)}`}
                       >
@@ -283,20 +383,38 @@ const TableBookingSystem = () => {
                         {table.booking && (
                           <div className="booker-name">{table.booking.bookerName}</div>
                         )}
-                        <div className="table-actions">
-                          <button
-                            className="move-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              moveTableOutside(table.id)
-                            }}
-                            title="ย้ายออกจากหอประชุม"
-                          >
-                            <ArrowRightLeft size={12} />
-                          </button>
-                        </div>
+                        {!isDragMode && (
+                          <div className="table-actions">
+                            <button
+                              className="move-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                moveTableOutside(table.id)
+                              }}
+                              title="ย้ายออกจากหอประชุม"
+                            >
+                              <ArrowRightLeft size={12} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
+                  
+                  {/* พื้นที่วางโต๊ะในโหมดลาก - ขวา */}
+                  {isDragMode && draggedTable && [4, 5, 6].map(col => {
+                    const hasTable = tables.some(t => t.row === row && t.col === col)
+                    if (hasTable) return null
+                    return (
+                      <div
+                        key={`drop-${row}-${col}`}
+                        className="drop-zone"
+                        onClick={() => handleTableDrop(row, col, 'inside')}
+                        title="คลิกเพื่อวางโต๊ะที่นี่"
+                      >
+                        📍
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -323,13 +441,21 @@ const TableBookingSystem = () => {
             <span>จ่ายแล้ว: {tables.filter(t => t.booking && t.booking.isPaid).length + outsideTables.filter(t => t.booking && t.booking.isPaid).length}</span>
           </div>
           <div className="summary-item">
-            <button className="reset-btn" onClick={clearAllData}>
-              🔄 รีเซ็ตระบบ
+            <button 
+              className={`magic-btn ${isDragMode ? 'active' : ''}`} 
+              onClick={toggleDragMode}
+            >
+              ✨ {isDragMode ? 'ปิดโหมดลาก' : 'โหมดลากโต๊ะ'}
+            </button>
+          </div>
+          <div className="summary-item">
+            <button className="add-btn" onClick={addNewTable}>
+              ➕ เพิ่มโต๊ะใหม่
             </button>
           </div>
           <div className="summary-item">
             <button className="restore-btn" onClick={restoreAllTables}>
-              ➕ สร้างโต๊ะคืน
+              🔄 สร้างโต๊ะคืน
             </button>
           </div>
         </div>
@@ -351,7 +477,11 @@ const TableBookingSystem = () => {
           {outsideTables.map(table => (
             <div
               key={table.id}
-              className={`table-item ${getTableStatusClass(table)}`}
+              className={`table-item ${getTableStatusClass(table)} ${
+                isDragMode ? 'drag-mode' : ''
+              } ${
+                draggedTable && draggedTable.id === table.id ? 'dragged' : ''
+              }`}
               onClick={() => handleTableClick(table)}
             >
               <div className="table-number">{table.displayName || table.id}</div>
@@ -359,31 +489,44 @@ const TableBookingSystem = () => {
               {table.booking && (
                 <div className="booker-name">{table.booking.bookerName}</div>
               )}
-              <div className="table-actions">
-                <button
-                  className="move-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    moveTableInside(table.id)
-                  }}
-                  title="ย้ายเข้าหอประชุม"
-                >
-                  <ArrowRightLeft size={12} />
-                </button>
-                <button
-                  className="delete-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setOutsideTables(outsideTables.filter(t => t.id !== table.id))
-                    toast.success(`ลบโต๊ะ ${table.displayName || table.id}`)
-                  }}
-                  title="ลบโต๊ะ"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
+              {!isDragMode && (
+                <div className="table-actions">
+                  <button
+                    className="move-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      moveTableInside(table.id)
+                    }}
+                    title="ย้ายเข้าหอประชุม"
+                  >
+                    <ArrowRightLeft size={12} />
+                  </button>
+                  <button
+                    className="delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setOutsideTables(outsideTables.filter(t => t.id !== table.id))
+                      toast.success(`ลบโต๊ะ ${table.displayName || table.id}`)
+                    }}
+                    title="ลบโต๊ะ"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
+          
+          {/* พื้นที่วางโต๊ะนอกหอ */}
+          {isDragMode && draggedTable && (
+            <div
+              className="drop-zone outside-drop"
+              onClick={() => handleTableDrop(0, 0, 'outside')}
+              title="คลิกเพื่อวางโต๊ะนอกหอประชุม"
+            >
+              📍 วางโต๊ะที่นี่
+            </div>
+          )}
         </div>
       </div>
 

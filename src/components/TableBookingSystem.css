@@ -328,6 +328,102 @@
   transform: translateY(-1px);
 }
 
+.magic-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.magic-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-1px);
+}
+
+.magic-btn.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+  transform: translateY(-1px);
+}
+
+/* โหมดลาก */
+.table-item.drag-mode {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.table-item.drag-mode:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.table-item.dragged {
+  opacity: 0.7;
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+  border: 2px solid #8b5cf6;
+}
+
+.drop-zone {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed #8b5cf6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.drop-zone:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #7c3aed;
+  transform: scale(1.05);
+}
+
+.outside-drop {
+  width: 100%;
+  height: 60px;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+/* ซ่อนปุ่มขณะอยู่ในโหมดลาก */
+.table-item.drag-mode .table-actions {
+  display: none;
+}
+
 @media (max-width: 1200px) {
   .table-booking-system {
     flex-direction: column;
@@ -336,12 +432,17 @@
   
   .outside-tables {
     width: 100%;
+    order: 2; /* ให้อยู่ด้านล่างในมือถือ แต่ยังคงเป็น "ด้านขวา" ในแนวคิด */
   }
   
   .outside-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+  }
+  
+  .main-content {
+    order: 1;
   }
 }
 
