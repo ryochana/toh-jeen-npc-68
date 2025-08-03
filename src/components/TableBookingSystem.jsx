@@ -60,14 +60,20 @@ const TableBookingSystem = () => {
 
   const handleTableClick = (table) => {
     if (isDragMode) {
-      // โหมดลาก: เลือกโต๊ะที่จะลาก
-      if (draggedTable && draggedTable.id === table.id) {
-        // ยกเลิกการลาก
-        setDraggedTable(null)
-        toast.info('ยกเลิกการลากโต๊ะ')
+      // โหมดลาก
+      if (draggedTable) {
+        if (draggedTable.id === table.id) {
+          // ยกเลิกการลาก
+          setDraggedTable(null)
+          toast.info('ยกเลิกการลากโต๊ะ')
+        } else {
+          // ลากไปแทนที่โต๊ะอื่น (สลับตำแหน่ง)
+          handleTableDrop(table)
+        }
       } else {
+        // เลือกโต๊ะที่จะลาก
         setDraggedTable(table)
-        toast.info(`เลือกโต๊ะ ${table.displayName || table.id} สำหรับลาก`)
+        toast.info(`เลือกโต๊ะ ${table.displayName || table.id} สำหรับลาก - คลิกโต๊ะอื่นเพื่อสลับตำแหน่ง หรือคลิกจุดว่างเพื่อย้าย`)
       }
       return
     }
@@ -186,11 +192,30 @@ const TableBookingSystem = () => {
     }), 60)
     
     const newId = `${(maxId + 1).toString().padStart(2, '0')}`
+    
+    // หาตำแหน่งที่ว่างในกริด
+    let newRow = 1
+    let newCol = 1
+    let positionFound = false
+    
+    for (let row = 1; row <= 20; row++) { // เพิ่มแถวได้ถึง 20
+      for (let col = 1; col <= 6; col++) {
+        const existingTable = tables.find(t => t.row === row && t.col === col)
+        if (!existingTable) {
+          newRow = row
+          newCol = col
+          positionFound = true
+          break
+        }
+      }
+      if (positionFound) break
+    }
+    
     const newTable = {
       id: newId,
       displayName: `โต๊ะ ${newId}`,
-      row: Math.ceil((maxId + 1) / 6),
-      col: ((maxId) % 6) + 1,
+      row: newRow,
+      col: newCol,
       booking: null,
       position: 'inside'
     }
@@ -199,7 +224,7 @@ const TableBookingSystem = () => {
       if (a.row !== b.row) return a.row - b.row
       return a.col - b.col
     }))
-    toast.success(`เพิ่มโต๊ะใหม่ ${newId}`)
+    toast.success(`เพิ่มโต๊ะใหม่ ${newId} ที่แถว ${newRow} คอลัมน์ ${newCol}`)
   }
 
   const toggleDragMode = () => {
@@ -212,34 +237,83 @@ const TableBookingSystem = () => {
     }
   }
 
-  const handleTableDrop = (targetRow, targetCol, targetPosition) => {
+  const handleTableDrop = (targetTable = null, targetRow = null, targetCol = null, targetPosition = 'inside') => {
     if (!draggedTable) return
 
-    const newTable = {
-      ...draggedTable,
-      row: targetRow,
-      col: targetCol,
-      position: targetPosition
-    }
-
-    // ลบโต๊ะเดิม
-    if (draggedTable.position === 'inside') {
-      setTables(tables.filter(t => t.id !== draggedTable.id))
-    } else {
-      setOutsideTables(outsideTables.filter(t => t.id !== draggedTable.id))
-    }
-
-    // เพิ่มโต๊ะในตำแหน่งใหม่
-    if (targetPosition === 'inside') {
-      setTables([...tables.filter(t => t.id !== draggedTable.id), newTable].sort((a, b) => {
+    let newRow, newCol, newPosition
+    
+    if (targetTable) {
+      // ลากไปแทนที่โต๊ะอื่น - สลับตำแหน่ง
+      newRow = targetTable.row
+      newCol = targetTable.col  
+      newPosition = targetTable.position
+      
+      // สร้างโต๊ะใหม่ในตำแหน่งเป้าหมาย
+      const newDraggedTable = {
+        ...draggedTable,
+        row: newRow,
+        col: newCol,
+        position: newPosition
+      }
+      
+      // สร้างโต๊ะเป้าหมายในตำแหน่งเดิมของโต๊ะที่ลาก
+      const newTargetTable = {
+        ...targetTable,
+        row: draggedTable.row,
+        col: draggedTable.col,
+        position: draggedTable.position
+      }
+      
+      // อัปเดตโต๊ะในด้านใน
+      const updatedTables = tables.filter(t => t.id !== draggedTable.id && t.id !== targetTable.id)
+      if (newDraggedTable.position === 'inside') updatedTables.push(newDraggedTable)
+      if (newTargetTable.position === 'inside') updatedTables.push(newTargetTable)
+      
+      // อัปเดตโต๊ะด้านนอก
+      const updatedOutsideTables = outsideTables.filter(t => t.id !== draggedTable.id && t.id !== targetTable.id)
+      if (newDraggedTable.position === 'outside') updatedOutsideTables.push(newDraggedTable)
+      if (newTargetTable.position === 'outside') updatedOutsideTables.push(newTargetTable)
+      
+      setTables(updatedTables.sort((a, b) => {
         if (a.row !== b.row) return a.row - b.row
         return a.col - b.col
       }))
+      setOutsideTables(updatedOutsideTables)
+      
+      toast.success(`สลับตำแหน่งโต๊ะ ${draggedTable.displayName || draggedTable.id} กับ ${targetTable.displayName || targetTable.id}`)
     } else {
-      setOutsideTables([...outsideTables.filter(t => t.id !== draggedTable.id), newTable])
+      // ลากไปตำแหน่งว่าง
+      newRow = targetRow
+      newCol = targetCol
+      newPosition = targetPosition
+      
+      const newTable = {
+        ...draggedTable,
+        row: newRow,
+        col: newCol,
+        position: newPosition
+      }
+
+      // ลบโต๊ะจากตำแหน่งเดิม
+      if (draggedTable.position === 'inside') {
+        setTables(tables.filter(t => t.id !== draggedTable.id))
+      } else {
+        setOutsideTables(outsideTables.filter(t => t.id !== draggedTable.id))
+      }
+
+      // เพิ่มโต๊ะในตำแหน่งใหม่
+      if (newPosition === 'inside') {
+        setTables([...tables.filter(t => t.id !== draggedTable.id), newTable].sort((a, b) => {
+          if (a.row !== b.row) return a.row - b.row
+          return a.col - b.col
+        }))
+      } else {
+        setOutsideTables([...outsideTables.filter(t => t.id !== draggedTable.id), newTable])
+      }
+      
+      toast.success(`ย้ายโต๊ะ ${draggedTable.displayName || draggedTable.id} สำเร็จ`)
     }
 
-    toast.success(`ย้ายโต๊ะ ${draggedTable.displayName || draggedTable.id} สำเร็จ`)
     setDraggedTable(null)
   }
 
@@ -348,7 +422,7 @@ const TableBookingSystem = () => {
                       <div
                         key={`drop-${row}-${col}`}
                         className="drop-zone"
-                        onClick={() => handleTableDrop(row, col, 'inside')}
+                        onClick={() => handleTableDrop(null, row, col, 'inside')}
                         title="คลิกเพื่อวางโต๊ะที่นี่"
                       >
                         📍
@@ -408,7 +482,7 @@ const TableBookingSystem = () => {
                       <div
                         key={`drop-${row}-${col}`}
                         className="drop-zone"
-                        onClick={() => handleTableDrop(row, col, 'inside')}
+                        onClick={() => handleTableDrop(null, row, col, 'inside')}
                         title="คลิกเพื่อวางโต๊ะที่นี่"
                       >
                         📍
@@ -521,7 +595,7 @@ const TableBookingSystem = () => {
           {isDragMode && draggedTable && (
             <div
               className="drop-zone outside-drop"
-              onClick={() => handleTableDrop(0, 0, 'outside')}
+              onClick={() => handleTableDrop(null, 0, 0, 'outside')}
               title="คลิกเพื่อวางโต๊ะนอกหอประชุม"
             >
               📍 วางโต๊ะที่นี่
