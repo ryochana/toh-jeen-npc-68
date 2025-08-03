@@ -57,6 +57,32 @@ GOOGLE_CERT_URL=auth_provider_x509_cert_url_from_json
 2. ลองกดปุ่ม "📊 Sync Sheets" ในแอป
 3. ตรวจสอบว่าข้อมูลถูกส่งไป Google Sheets หรือไม่
 
+## ขั้นตอนที่ 5: Deploy ไป Vercel
+
+1. **Push โค้ดไป GitHub** (ถ้ายังไม่ได้ทำ)
+2. **ไปที่ Vercel Dashboard**: https://vercel.com/dashboard
+3. **Import Project** จาก GitHub repository
+4. **เพิ่ม Environment Variables** ใน Vercel:
+   - ไป Settings > Environment Variables
+   - เพิ่มตัวแปรเหล่านี้:
+     ```
+     VITE_GOOGLE_SHEET_ID=1cEdeOnCyDjLJNzTAhGCuKVESQv4hyGd3zLRiNHbG5e0
+     GOOGLE_PROJECT_ID=toh-jeen-table-booking
+     GOOGLE_PRIVATE_KEY_ID=998d40f0c64f45f7625569f238351bae39647571
+     GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n[ใส่ private key ที่แท้จริง]\n-----END PRIVATE KEY-----\n"
+     GOOGLE_CLIENT_EMAIL=table-booking-service@toh-jeen-table-booking.iam.gserviceaccount.com
+     GOOGLE_CLIENT_ID=106316765468457507264
+     GOOGLE_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+     ```
+5. **Deploy** และทดสอบ
+
+## ขั้นตอนที่ 6: สร้างแท็บใน Google Sheets
+
+ใน Google Sheets ของคุณ สร้าง 3 แท็บ:
+1. **Tables** - สำหรับข้อมูลโต๊ะทั้งหมด
+2. **Bookings** - สำหรับข้อมูลการจอง (ถ้าต้องการ)
+3. **ActivityLog** - สำหรับประวัติกิจกรรม
+
 ## หมายเหตุ
 - ไฟล์ `.env` จะถูก ignore โดย Git เพื่อความปลอดภัย
 - ห้ามแชร์ข้อมูล Service Account กับผู้อื่น

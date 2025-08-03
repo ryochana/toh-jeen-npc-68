@@ -1,93 +1,137 @@
+// Vercel Serverless Function สำหรับ Google Sheets
 import { google } from 'googleapis'
 
 export default async function handler(req, res) {
+  // เพิ่ม CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Service Account credentials (จะได้จาก environment variables)
-    const credentials = {
-      type: "service_account",
-      project_id: process.env.GOOGLE_PROJECT_ID,
-      private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      auth_uri: "https://accounts.google.com/o/oauth2/auth",
-      token_uri: "https://oauth2.googleapis.com/token",
-      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-      client_x509_cert_url: process.env.GOOGLE_CERT_URL
+    const { spreadsheetId, data } = req.body
+
+    if (!spreadsheetId || !data) {
+      return res.status(400).json({ error: 'Missing required data' })
     }
 
+    // ตรวจสอบ environment variables
+    const requiredEnvs = ['GOOGLE_PROJECT_ID', 'GOOGLE_PRIVATE_KEY', 'GOOGLE_CLIENT_EMAIL']
+    for (const env of requiredEnvs) {
+      if (!process.env[env]) {
+        console.error(`Missing environment variable: ${env}`)
+        return res.status(500).json({ error: `Missing configuration: ${env}` })
+      }
+    }
+
+    // ตั้งค่า Google Auth
     const auth = new google.auth.GoogleAuth({
-      credentials,
+      credentials: {
+        type: 'service_account',
+        project_id: process.env.GOOGLE_PROJECT_ID,
+        private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+        token_uri: 'https://oauth2.googleapis.com/token',
+        auth_provider_x509_cert_url: process.env.GOOGLE_CERT_URL || 'https://www.googleapis.com/oauth2/v1/certs',
+        client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${encodeURIComponent(process.env.GOOGLE_CLIENT_EMAIL)}`
+      },
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     })
 
     const sheets = google.sheets({ version: 'v4', auth })
-    const spreadsheetId = process.env.GOOGLE_SHEET_ID
 
-    const { tables, activityLog } = req.body
+    // เคลียร์และอัปเดตแต่ละแท็บ
+    const updates = []
 
-    // Clear existing data and add headers
-    await sheets.spreadsheets.values.clear({
-      spreadsheetId,
-      range: 'Tables!A:J'
-    })
-
-    // Add headers for Tables sheet
-    const tablesHeaders = [['id', 'displayName', 'row', 'col', 'position', 'bookerName', 'phone', 'notes', 'isPaid', 'lastUpdated']]
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: 'Tables!A1:J1',
-      valueInputOption: 'RAW',
-      resource: { values: tablesHeaders }
-    })
-
-    // Add table data
-    if (tables && tables.length > 0) {
-      await sheets.spreadsheets.values.update({
+    // Tables tab
+    if (data.tables && data.tables.length > 0) {
+      // เคลียร์ข้อมูลเก่า
+      await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `Tables!A2:J${tables.length + 1}`,
-        valueInputOption: 'RAW',
-        resource: { values: tables }
+        range: 'Tables!A:Z'
       })
+
+      // เพิ่ม header
+      const tablesHeader = [
+        ['ID', 'ชื่อโต๊ะ', 'แถว', 'คอลัมน์', 'ตำแหน่ง', 'ผู้จอง', 'เบอร์โทร', 'หมายเหตุ', 'สถานะการจ่าย', 'อัปเดตล่าสุด']
+      ]
+      
+      updates.push(
+        sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: 'Tables!A1:J1',
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: tablesHeader }
+        })
+      )
+
+      // เพิ่มข้อมูลโต๊ะ
+      updates.push(
+        sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `Tables!A2:J${data.tables.length + 1}`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: data.tables }
+        })
+      )
     }
 
-    // Update Activity Log
-    await sheets.spreadsheets.values.clear({
-      spreadsheetId,
-      range: 'ActivityLog!A:C'
-    })
-
-    const activityHeaders = [['message', 'timestamp', 'time']]
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: 'ActivityLog!A1:C1',
-      valueInputOption: 'RAW',
-      resource: { values: activityHeaders }
-    })
-
-    if (activityLog && activityLog.length > 0) {
-      await sheets.spreadsheets.values.update({
+    // ActivityLog tab
+    if (data.activityLog && data.activityLog.length > 0) {
+      // เคลียร์ข้อมูลเก่า
+      await sheets.spreadsheets.values.clear({
         spreadsheetId,
-        range: `ActivityLog!A2:C${activityLog.length + 1}`,
-        valueInputOption: 'RAW',
-        resource: { values: activityLog }
+        range: 'ActivityLog!A:Z'
       })
+
+      // เพิ่ม header
+      const logHeader = [['กิจกรรม', 'วันที่', 'เวลา']]
+      
+      updates.push(
+        sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: 'ActivityLog!A1:C1',
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: logHeader }
+        })
+      )
+
+      // เพิ่มข้อมูล log
+      updates.push(
+        sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `ActivityLog!A2:C${data.activityLog.length + 1}`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: data.activityLog }
+        })
+      )
     }
 
-    res.status(200).json({ 
+    // รอให้การอัปเดตทั้งหมดเสร็จ
+    await Promise.all(updates)
+
+    console.log('✅ Successfully synced to Google Sheets')
+    return res.status(200).json({ 
       success: true, 
-      message: 'Data synced to Google Sheets successfully',
-      updatedAt: new Date().toISOString()
+      message: 'Data synced successfully',
+      timestamp: new Date().toISOString()
     })
 
   } catch (error) {
-    console.error('Error syncing to Google Sheets:', error)
-    res.status(500).json({ 
-      error: 'Failed to sync to Google Sheets', 
+    console.error('❌ Error syncing to Google Sheets:', error)
+    return res.status(500).json({ 
+      error: 'Failed to sync data', 
       details: error.message 
     })
   }

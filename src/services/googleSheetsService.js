@@ -1,49 +1,49 @@
-import { GoogleAuth } from 'google-auth-library'
+// Google Sheets Service - ทำงานผ่าน API endpoint เท่านั้น
+// ไม่ import google-auth-library เพื่อป้องกันปัญหา build ใน browser
 
 class GoogleSheetsService {
   constructor() {
-    this.auth = null
-    this.sheets = null
     this.spreadsheetId = import.meta.env.VITE_GOOGLE_SHEET_ID
     this.initialized = false
+    this.apiEndpoint = '/api/sync-sheets'
   }
 
   async initialize() {
     if (this.initialized) return
 
     try {
-      // สำหรับ production จะใช้ service account credentials
-      // ส่วนนี้จะต้องใช้ backend API เพราะ credentials ไม่ควรเปิดเผยใน frontend
-      
-      // สำหรับ demo ใช้ localStorage ก่อน และ sync เป็นระยะ
-      console.log('Google Sheets service initialized (demo mode)')
+      console.log('🔧 Google Sheets service initialized (API mode)')
       this.initialized = true
     } catch (error) {
-      console.error('Failed to initialize Google Sheets:', error)
+      console.error('❌ Failed to initialize Google Sheets:', error)
       throw error
     }
   }
 
-  // ฟังก์ชัน sync ข้อมูลไป Google Sheets (จะเรียกผ่าน API endpoint)
+  // ฟังก์ชัน sync ข้อมูลไป Google Sheets (ผ่าน API endpoint)
   async syncToSheets(data) {
     try {
-      const response = await fetch('/api/sync-sheets', {
+      const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          spreadsheetId: this.spreadsheetId,
+          data: data
+        })
       })
       
       if (!response.ok) {
-        throw new Error('Failed to sync to Google Sheets')
+        const errorText = await response.text()
+        throw new Error(`Failed to sync to Google Sheets: ${errorText}`)
       }
       
-      return await response.json()
+      const result = await response.json()
+      console.log('✅ Synced to Google Sheets successfully')
+      return result
     } catch (error) {
-      console.error('Error syncing to Google Sheets:', error)
-      // Fallback to localStorage if sheets sync fails
-      localStorage.setItem('tableBookings', JSON.stringify(data))
+      console.error('❌ Error syncing to Google Sheets:', error)
       throw error
     }
   }
@@ -60,7 +60,7 @@ class GoogleSheetsService {
       table.booking ? table.booking.bookerName : '',
       table.booking ? table.booking.phone : '',
       table.booking ? table.booking.notes : '',
-      table.booking ? table.booking.isPaid : false,
+      table.booking ? (table.booking.isPaid ? 'จ่ายแล้ว' : 'ยังไม่จ่าย') : '',
       new Date().toLocaleString('th-TH')
     ])
   }
@@ -80,7 +80,7 @@ class GoogleSheetsService {
       activityLog: this.prepareActivityLogData(activityLog),
       timestamp: new Date().toISOString()
     }
-
+    
     return await this.syncToSheets(data)
   }
 }
