@@ -87,7 +87,7 @@ const TableBookingSystem = () => {
           for (let col = 1; col <= 3; col++) {
             initialTables.push({
               id: tableNumber.toString().padStart(2, '0'),
-              displayName: tableNumber.toString().padStart(2, '0'),
+              displayName: `โต๊ะ ${tableNumber.toString().padStart(2, '0')}`,
               row,
               col,
               booking: null,
@@ -100,7 +100,7 @@ const TableBookingSystem = () => {
           for (let col = 1; col <= 5; col++) {
             initialTables.push({
               id: tableNumber.toString().padStart(2, '0'),
-              displayName: tableNumber.toString().padStart(2, '0'),
+              displayName: `โต๊ะ ${tableNumber.toString().padStart(2, '0')}`,
               row,
               col,
               booking: null,
