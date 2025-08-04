@@ -1,24 +1,17 @@
-// Supabase Configuration
-// กรุณาเพิ่ม environment variables ในไฟล์ .env.local:
-// VITE_SUPABASE_URL=your_supabase_url
-// VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Helper functions สำหรับจัดการข้อมูลโต๊ะ
 export const supabaseService = {
-  // ดึงข้อมูลโต๊ะทั้งหมด
-  async getTables() {
+  async getAllTables() {
     try {
       const { data, error } = await supabase
-        .from('table_bookings')
+        .from('tables')
         .select('*')
-        .order('table_id')
+        .order('id')
       
       if (error) throw error
       return data || []
@@ -28,12 +21,15 @@ export const supabaseService = {
     }
   },
 
-  // บันทึกหรือแก้ไขข้อมูลโต๊ะ
-  async upsertTable(tableData) {
+  async upsertTable(tableId, tableData) {
     try {
       const { data, error } = await supabase
-        .from('table_bookings')
-        .upsert(tableData)
+        .from('tables')
+        .upsert({
+          id: tableId,
+          data: tableData,
+          updated_at: new Date().toISOString()
+        })
         .select()
       
       if (error) throw error
@@ -44,10 +40,22 @@ export const supabaseService = {
     }
   },
 
-  // ลบข้อมูลโต๊ะ
   async deleteTable(tableId) {
     try {
       const { error } = await supabase
+        .from('tables')
+        .delete()
+        .eq('id', tableId)
+      
+      if (error) throw error
+    } catch (error) {
+      console.error('Error deleting table:', error)
+      throw error
+    }
+  }
+}
+
+export default supabase
         .from('table_bookings')
         .delete()
         .eq('table_id', tableId)
