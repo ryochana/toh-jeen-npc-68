@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { supabaseService } from '../services/supabaseService'
+import './TableBookingSystem.css'
 import { 
   Users, 
   Edit, 
@@ -198,16 +199,23 @@ const TableBookingSystem = () => {
 
     setIsSyncing(true)
     try {
+      console.log('🔄 เริ่ม Sync ข้อมูลไป Supabase...', {
+        tablesCount: tables.length,
+        outsideTablesCount: outsideTables.length,
+        bookedTables: [...tables, ...outsideTables].filter(t => t.booking).length
+      })
+      
       await supabaseService.syncFromLocalStorage({ tables, outsideTables })
       setLastSyncTime(new Date())
-      console.log('✅ Sync ไป Supabase สำเร็จ')
+      console.log('✅ Sync ไป Supabase สำเร็จ - ข้อมูลถูกบันทึกแล้ว')
+      
       if (showNotification) {
         toast.success('📊 Sync ข้อมูลไป Supabase สำเร็จ')
       }
     } catch (error) {
       console.error('❌ Sync ไป Supabase ล้มเหลว:', error)
       if (showNotification) {
-        toast.error('❌ Sync ไป Supabase ล้มเหลว')
+        toast.error('❌ Sync ไป Supabase ล้มเหลว: ' + error.message)
       }
     } finally {
       setIsSyncing(false)
@@ -387,7 +395,7 @@ const TableBookingSystem = () => {
     }
   }
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!currentBooking.name.trim()) {
       toast.error('กรุณากรอกชื่อผู้จอง')
       return
@@ -395,13 +403,32 @@ const TableBookingSystem = () => {
 
     saveStateForUndo(`จองโต๊ะ ${selectedTable.displayName}`)
     
+    const bookingData = {
+      ...currentBooking, 
+      bookedAt: new Date().toISOString()
+    }
+    
     const updatedTables = tables.map(table => 
       table.id === selectedTable.id 
-        ? { ...table, booking: { ...currentBooking, bookedAt: new Date().toISOString() } }
+        ? { ...table, booking: bookingData }
         : table
     )
     
     setTables(updatedTables)
+    
+    // บันทึกลง Supabase ทันที
+    if (isSupabaseEnabled) {
+      try {
+        await supabaseService.addActivityLog(`📝 จองโต๊ะ ${selectedTable.displayName}`, selectedTable.id, {
+          booking: bookingData,
+          action: 'book_table'
+        })
+        console.log('✅ บันทึกการจองไป Supabase สำเร็จ')
+      } catch (error) {
+        console.warn('⚠️ ไม่สามารถบันทึกไป Supabase ได้:', error)
+      }
+    }
+    
     addToActivityLog(`📝 จองโต๊ะ ${selectedTable.displayName} ให้ ${currentBooking.name} (${currentBooking.phone})`)
     
     setShowBookingModal(false)
@@ -410,7 +437,7 @@ const TableBookingSystem = () => {
     toast.success(`จองโต๊ะ ${selectedTable.displayName} สำเร็จ`)
   }
 
-  const handleUpdateBooking = () => {
+  const handleUpdateBooking = async () => {
     if (!currentBooking.name.trim()) {
       toast.error('กรุณากรอกชื่อผู้จอง')
       return
@@ -418,13 +445,32 @@ const TableBookingSystem = () => {
 
     saveStateForUndo(`แก้ไขข้อมูลโต๊ะ ${selectedTable.displayName}`)
     
+    const updatedBooking = {
+      ...currentBooking, 
+      updatedAt: new Date().toISOString()
+    }
+    
     const updatedTables = tables.map(table => 
       table.id === selectedTable.id 
-        ? { ...table, booking: { ...currentBooking, updatedAt: new Date().toISOString() } }
+        ? { ...table, booking: updatedBooking }
         : table
     )
     
     setTables(updatedTables)
+    
+    // บันทึกลง Supabase ทันที
+    if (isSupabaseEnabled) {
+      try {
+        await supabaseService.addActivityLog(`✏️ แก้ไขข้อมูลโต๊ะ ${selectedTable.displayName}`, selectedTable.id, {
+          booking: updatedBooking,
+          action: 'update_booking'
+        })
+        console.log('✅ บันทึกการแก้ไขไป Supabase สำเร็จ')
+      } catch (error) {
+        console.warn('⚠️ ไม่สามารถบันทึกไป Supabase ได้:', error)
+      }
+    }
+    
     addToActivityLog(`✏️ แก้ไขข้อมูลโต๊ะ ${selectedTable.displayName} เป็น ${currentBooking.name} (${currentBooking.phone})`)
     
     setShowEditModal(false)
@@ -706,57 +752,59 @@ const TableBookingSystem = () => {
   const totalTables = tables.length + outsideTables.length
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="table-booking-system min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 p-4">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">ระบบจองโต๊ะงานวัดบ้านโนนปากชี</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                🎭 ระบบจองโต๊ะงานวัดบ้านโนนปากชี
+              </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center">
+                <span className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
                   {isOnline ? <Wifi size={16} className="mr-1 text-green-500" /> : <WifiOff size={16} className="mr-1 text-red-500" />}
                   {isOnline ? 'ออนไลน์' : 'ออฟไลน์'}
                 </span>
                 
-                <span className="flex items-center">
+                <span className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
                   <Database size={16} className="mr-1" />
                   {isSupabaseEnabled ? (
-                    <span className="text-green-600">Supabase เชื่อมต่อแล้ว</span>
+                    <span className="text-green-600 font-medium">🟢 Supabase Connected</span>
                   ) : (
-                    <span className="text-orange-600">ใช้ localStorage</span>
+                    <span className="text-orange-600 font-medium">🟡 localStorage Only</span>
                   )}
                 </span>
                 
                 {lastSyncTime && isSupabaseEnabled && (
-                  <span className="flex items-center">
+                  <span className="flex items-center bg-blue-50 px-3 py-1 rounded-full text-blue-700">
                     <Clock size={16} className="mr-1" />
-                    Sync ล่าสุด: {lastSyncTime.toLocaleTimeString('th-TH')}
+                    Sync: {lastSyncTime.toLocaleTimeString('th-TH')}
                   </span>
                 )}
               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-                <div className="text-sm text-blue-600 font-medium">สรุปโต๊ะ</div>
-                <div className="text-lg font-bold text-blue-800">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl shadow-md">
+                <div className="text-sm font-medium">สรุปโต๊ะทั้งหมด</div>
+                <div className="text-2xl font-bold">
                   {bookedTablesCount}/{totalTables} โต๊ะ
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-green-50 px-2 py-1 rounded text-green-700 text-center">
-                  ว่าง: {totalTables - bookedTablesCount}
+                <div className="bg-green-100 px-3 py-2 rounded-lg text-green-800 text-center font-medium">
+                  🟢 ว่าง: {totalTables - bookedTablesCount}
                 </div>
-                <div className="bg-red-50 px-2 py-1 rounded text-red-700 text-center">
-                  จอง: {bookedTablesCount}
+                <div className="bg-red-100 px-3 py-2 rounded-lg text-red-800 text-center font-medium">
+                  🔴 จอง: {bookedTablesCount}
                 </div>
-                <div className="bg-blue-50 px-2 py-1 rounded text-blue-700 text-center">
-                  ออนไลน์: {[...tables, ...outsideTables].filter(t => t.booking?.status === 'online').length}
+                <div className="bg-blue-100 px-3 py-2 rounded-lg text-blue-800 text-center font-medium">
+                  🔵 ออนไลน์: {[...tables, ...outsideTables].filter(t => t.booking?.status === 'online').length}
                 </div>
-                <div className="bg-orange-50 px-2 py-1 rounded text-orange-700 text-center">
-                  หน้างาน: {[...tables, ...outsideTables].filter(t => t.booking?.status === 'confirmed').length}
+                <div className="bg-orange-100 px-3 py-2 rounded-lg text-orange-800 text-center font-medium">
+                  🟡 หน้างาน: {[...tables, ...outsideTables].filter(t => t.booking?.status === 'confirmed').length}
                 </div>
               </div>
             </div>
@@ -766,11 +814,11 @@ const TableBookingSystem = () => {
 
       {/* Control Panel */}
       <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex flex-wrap gap-3 mb-4">
             <button
               onClick={addNewTable}
-              className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               <Plus size={18} className="mr-2" />
               เพิ่มโต๊ะนอกฮอลล์
@@ -778,10 +826,10 @@ const TableBookingSystem = () => {
             
             <button
               onClick={toggleDragMode}
-              className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 ${
                 isDragMode 
-                  ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                  : 'bg-gray-500 text-white hover:bg-gray-600'
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700' 
+                  : 'bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700'
               }`}
             >
               <ArrowRightLeft size={18} className="mr-2" />
@@ -790,7 +838,7 @@ const TableBookingSystem = () => {
             
             <button
               onClick={() => setShowActivityLog(true)}
-              className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               <Calendar size={18} className="mr-2" />
               ดูกิจกรรม ({activityLog.length})
@@ -798,16 +846,16 @@ const TableBookingSystem = () => {
 
             <button
               onClick={exportToExcel}
-              className="flex items-center px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               <FileSpreadsheet size={18} className="mr-2" />
-              Export Excel
+              📊 Export Excel
             </button>
             
             {canUndo && (
               <button
                 onClick={undoLastAction}
-                className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
               >
                 <RotateCcw size={18} className="mr-2" />
                 ยกเลิกการดำเนินการ
@@ -819,29 +867,29 @@ const TableBookingSystem = () => {
                 <button
                   onClick={() => syncToSupabase(true)}
                   disabled={isSyncing}
-                  className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Upload size={18} className="mr-2" />
-                  {isSyncing ? 'กำลัง Sync...' : 'Sync ไป Supabase'}
+                  {isSyncing ? '🔄 Syncing...' : '⬆️ Sync ไป Supabase'}
                 </button>
                 
                 <button
                   onClick={syncFromSupabase}
                   disabled={isSyncing}
-                  className="flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download size={18} className="mr-2" />
-                  {isSyncing ? 'กำลัง Sync...' : 'ดึงจาก Supabase'}
+                  {isSyncing ? '🔄 Syncing...' : '⬇️ ดึงจาก Supabase'}
                 </button>
               </>
             )}
             
             <button
               onClick={restoreAllTables}
-              className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               <Trash2 size={18} className="mr-2" />
-              รีเซ็ตทั้งหมด
+              🗑️ รีเซ็ตทั้งหมด
             </button>
           </div>
 
@@ -896,41 +944,47 @@ const TableBookingSystem = () => {
 
       {/* Tables Layout - 9 แถว x (3+2) คอลัมน์ */}
       <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4 text-center">โต๊ะในฮอลล์ (37 โต๊ะ)</h2>
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <h2 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            🏛️ โต๊ะในฮอลล์ (37 โต๊ะ)
+          </h2>
           
           {/* เวที */}
-          <div className="mb-6">
-            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-center py-4 rounded-lg shadow-md">
-              <h3 className="text-xl font-bold">🎭 เวทีแสดง</h3>
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white text-center py-6 rounded-xl shadow-lg">
+              <h3 className="text-2xl font-bold mb-2">🎭 เวทีแสดง</h3>
+              <p className="text-sm opacity-90">Stage Area</p>
             </div>
           </div>
 
           {/* Layout แบบตาราง */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {Array.from({ length: 9 }, (_, rowIndex) => {
               const row = rowIndex + 1
               const leftTables = getTablesByPosition('inside').filter(table => table.row === row && table.col <= 3)
               const rightTables = getTablesByPosition('inside').filter(table => table.row === row && table.col > 3)
               
               return (
-                <div key={row} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div key={row} className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
                   {/* Row Header */}
-                  <div className="bg-gray-100 px-4 py-2 text-center font-semibold text-gray-700 border-b">
-                    แถวที่ {row}
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-200 px-6 py-3 text-center font-bold text-gray-700 border-b-2 border-gray-200">
+                    <span className="text-lg">🏛️ แถวที่ {row}</span>
                   </div>
                   
                   {/* Tables Row */}
-                  <div className="p-4">
-                    <div className="grid grid-cols-6 gap-4 items-center">
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="grid grid-cols-7 gap-4 items-center">
                       {/* โต๊ะด้านซ้าย (3 โต๊ะ) */}
                       <div className="col-span-3 grid grid-cols-3 gap-3">
                         {leftTables.length > 0 ? (
                           leftTables.map(renderTable)
                         ) : (
                           Array.from({ length: 3 }, (_, i) => (
-                            <div key={i} className="h-24 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
-                              ว่าง
+                            <div key={i} className="h-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 text-sm font-medium">
+                              <div className="text-center">
+                                <div className="text-2xl mb-1">⭕</div>
+                                <div>ว่าง</div>
+                              </div>
                             </div>
                           ))
                         )}
@@ -938,32 +992,36 @@ const TableBookingSystem = () => {
                       </div>
                       
                       {/* ทางเดินกลาง */}
-                      <div className="col-span-1 flex flex-col items-center justify-center">
-                        <div className="w-full h-1 bg-blue-200 rounded-full mb-2"></div>
-                        <span className="text-xs text-gray-500 font-medium">ทางเดิน</span>
-                        <div className="w-full h-1 bg-blue-200 rounded-full mt-2"></div>
+                      <div className="col-span-1 flex flex-col items-center justify-center py-8">
+                        <div className="w-full h-2 bg-gradient-to-r from-blue-300 to-indigo-300 rounded-full mb-2 shadow-sm"></div>
+                        <span className="text-sm text-gray-600 font-bold bg-white px-3 py-1 rounded-full shadow-sm">🚶 ทางเดิน</span>
+                        <div className="w-full h-2 bg-gradient-to-r from-blue-300 to-indigo-300 rounded-full mt-2 shadow-sm"></div>
                       </div>
                       
                       {/* โต๊ะด้านขวา (2 โต๊ะ เฉพาะแถว 2-8) */}
-                      <div className="col-span-2 grid grid-cols-2 gap-3">
+                      <div className="col-span-3 grid grid-cols-2 gap-3">
                         {row !== 1 && row !== 9 ? (
                           <>
                             {rightTables.length > 0 ? (
                               rightTables.map(renderTable)
                             ) : (
                               Array.from({ length: 2 }, (_, i) => (
-                                <div key={i} className="h-24 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
-                                  ว่าง
+                                <div key={i} className="h-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 text-sm font-medium">
+                                  <div className="text-center">
+                                    <div className="text-2xl mb-1">⭕</div>
+                                    <div>ว่าง</div>
+                                  </div>
                                 </div>
                               ))
                             )}
                             {isDragMode && renderDropZone(row, [4, 5])}
                           </>
                         ) : (
-                          <div className="col-span-2 flex items-center justify-center h-24 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100">
+                          <div className="col-span-2 flex items-center justify-center h-28 text-gray-500 text-sm border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200">
                             <div className="text-center">
-                              <div className="text-lg">🚫</div>
-                              <div>ไม่มีโต๊ะ</div>
+                              <div className="text-3xl mb-2">🚫</div>
+                              <div className="font-medium">ไม่มีโต๊ะในตำแหน่งนี้</div>
+                              <div className="text-xs text-gray-400 mt-1">แถวปลายไม่มีโต๊ะด้านขวา</div>
                             </div>
                           </div>
                         )}
@@ -976,22 +1034,25 @@ const TableBookingSystem = () => {
           </div>
 
           {/* Legend */}
-          <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 border-2 border-green-400 rounded"></div>
-              <span>โต๊ะว่าง</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100 border-2 border-red-400 rounded"></div>
-              <span>จองหน้างาน</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-100 border-2 border-blue-400 rounded"></div>
-              <span>จองออนไลน์</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-dashed border-gray-300 rounded bg-gray-50"></div>
-              <span>ตำแหน่งว่าง</span>
+          <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+            <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">📋 คำอธิบายสีและสัญลักษณ์</h4>
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                <div className="w-6 h-6 bg-gradient-to-br from-green-100 to-green-200 border-2 border-green-400 rounded"></div>
+                <span className="font-medium">🟢 โต๊ะว่าง</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                <div className="w-6 h-6 bg-gradient-to-br from-red-100 to-red-200 border-2 border-red-400 rounded"></div>
+                <span className="font-medium">🔴 จองหน้างาน</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-400 rounded"></div>
+                <span className="font-medium">🔵 จองออนไลน์</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                <div className="w-6 h-6 border-2 border-dashed border-gray-300 rounded bg-gray-50"></div>
+                <span className="font-medium">⭕ ตำแหน่งว่าง</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1000,11 +1061,19 @@ const TableBookingSystem = () => {
       {/* Outside Tables */}
       {outsideTables.length > 0 && (
         <div className="max-w-7xl mx-auto mb-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">โต๊ะนอกฮอลล์ ({outsideTables.length} โต๊ะ)</h2>
-              <div className="text-sm text-gray-600">
-                จอง: {outsideTables.filter(t => t.booking).length} / ว่าง: {outsideTables.filter(t => !t.booking).length}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
+                🏕️ โต๊ะนอกฮอลล์ ({outsideTables.length} โต๊ะ)
+              </h2>
+              <div className="flex items-center gap-4 text-sm bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 rounded-lg">
+                <span className="flex items-center text-green-700 font-medium">
+                  🟢 จอง: {outsideTables.filter(t => t.booking).length}
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="flex items-center text-red-700 font-medium">
+                  ⭕ ว่าง: {outsideTables.filter(t => !t.booking).length}
+                </span>
               </div>
             </div>
             
@@ -1014,6 +1083,21 @@ const TableBookingSystem = () => {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-lg p-6 text-center">
+          <h3 className="text-xl font-bold mb-2">🙏 ระบบจองโต๊ะงานบุญ</h3>
+          <p className="text-sm opacity-90">พัฒนาด้วย ❤️ สำหรับงานผ้าป่าวัดบ้านโนนปากชี</p>
+          <div className="mt-4 flex justify-center items-center gap-4 text-xs opacity-75">
+            <span>🔄 Real-time Sync</span>
+            <span>•</span>
+            <span>📊 Excel Export</span>
+            <span>•</span>
+            <span>☁️ Cloud Storage</span>
+          </div>
+        </div>
+      </div>
 
       {/* Booking Modal */}
       <Modal 
