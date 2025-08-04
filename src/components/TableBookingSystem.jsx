@@ -92,135 +92,14 @@ export default function TableBookingSystem() {
 
     const ws = XLSX.utils.json_to_sheet(excelData)
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'รายการจองโต๊ะ')
-    XLSX.writeFile(wb, `รายการจองโต๊ะ_${new Date().toLocaleDateString('th-TH')}.xlsx`)
-    toast.success('📊 ส่งออกไฟล์ Excel สำเร็จ')
-  }
+import React from 'react';
 
+export default function TableBookingSystem() {
   return (
-    <main className="container mt-4">
-      {/* Summary Stats */}
-      <section className="panel mb-4">
-        <div className="flex justify-center items-center mb-4">
-          <div className="mx-2 text-center">
-            <div>🟢 ว่าง</div>
-            <div>{tables.filter(t => !t.booking).length} โต๊ะ</div>
-          </div>
-          <div className="mx-2 text-center">
-            <div>🔴 จองแล้ว</div>
-            <div>{tables.filter(t => t.booking).length} โต๊ะ</div>
-          </div>
-          <div className="mx-2 text-center">
-            <div>📊 รวม</div>
-            <div>{tables.length} โต๊ะ</div>
-          </div>
-        </div>
-        <div className="text-center">
-          <button onClick={exportToExcel} className="btn">📊 ส่งออกรายงาน Excel</button>
-        </div>
-      </section>
-
-      {/* Stage */}
-      <section className="panel mb-4 text-center">
-        <div className="text-6xl mb-4">🎭</div>
-        <h2 className="text-center mb-2">เวทีแสดง</h2>
-        <p>พื้นที่แสดงและพิธีกรรม</p>
-      </section>
-
-      {/* Table Layout */}
-      <section className="panel mb-4">
-        <div className="text-center mb-4">
-          <h2>🪑 โต๊ะในหอประชุม</h2>
-          <p>การจัดวาง 9 แถว รวม 37 โต๊ะ</p>
-        </div>
-        {Array.from({ length: 9 }, (_, rowIndex) => {
-          const row = rowIndex + 1
-          const rowTables = tables.filter(t => t.row === row)
-          return (
-            <div key={row} className="mb-4">
-              <div className="text-center mb-2 font-bold">🏛️ แถวที่ {row} ({rowTables.length} โต๊ะ)</div>
-              <div className="table-grid" style={{ gridTemplateColumns: row === 1 || row === 9 ? 'repeat(3, 1fr)' : 'repeat(3, 1fr) 80px repeat(2, 1fr)' }}>
-      {showModal && selectedTable && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <header className="mb-4 text-center">
-              <h3 className="font-bold mb-2">
-                {selectedTable.booking ? 'แก้ไขการจอง' : 'จองโต๊ะใหม่'}
-              </h3>
-              <p>ID: {selectedTable.id}</p>
-              <p>ชื่อโต๊ะ: {selectedTable.displayName}</p>
-            </header>
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                handleBooking();
-              }}
-            >
-              <label>Table ID</label>
-              <input type="text" value={selectedTable.id} readOnly />
-              <label>Display Name</label>
-              <input
-                type="text"
-                value={selectedTable.displayName}
-                readOnly
-              />
-              <label>Row</label>
-              <input type="text" value={selectedTable.row} readOnly />
-              <label>Column</label>
-              <input type="text" value={selectedTable.col} readOnly />
-              <label>Position</label>
-              <input type="text" value={selectedTable.position} readOnly />
-
-              <label>👤 ชื่อผู้จอง *</label>
-              <input
-                type="text"
-                value={bookingData.name}
-                onChange={e => setBookingData({ ...bookingData, name: e.target.value })}
-                required
-              />
-              <label>📱 เบอร์โทรศัพท์</label>
-              <input
-                type="text"
-                value={bookingData.phone}
-                onChange={e => setBookingData({ ...bookingData, phone: e.target.value })}
-              />
-              <label>💰 สถานะการจ่าย</label>
-              <select
-                value={bookingData.status}
-                onChange={e => setBookingData({ ...bookingData, status: e.target.value })}
-              >
-                <option value="confirmed">📝 จองแล้ว</option>
-                <option value="paid">💰 จ่ายแล้ว</option>
-              </select>
-
-              <div className="flex justify-center mt-4">
-                {selectedTable.booking && (
-                  <button
-                    type="button"
-                    onClick={handleCancelBooking}
-                    className="btn mx-2"
-                  >
-                    🗑️ ยกเลิกการจอง
-                  </button>
-                )}
-                <button type="submit" className="btn mx-2">
-                  ✅{' '}
-                  {selectedTable.booking ? 'อัพเดทข้อมูล' : 'จองโต๊ะ'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn mx-2"
-                >
-                  ❌ ปิด
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </main>
-  )
+    <div className="container mt-4">
+      <h2 className="text-center">Table Booking System</h2>
+      <p className="text-center">Component under construction...</p>
+    </div>
+  );
 }
-
-export default TableBookingSystem
+          <div className="mx-2 text-center">
