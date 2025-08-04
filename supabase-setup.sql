@@ -68,15 +68,19 @@ CREATE TRIGGER update_table_bookings_updated_at
 ALTER TABLE table_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 
+-- ลบ policy เก่าถ้ามี
+DROP POLICY IF EXISTS "Allow public access to table_bookings" ON table_bookings;
+DROP POLICY IF EXISTS "Allow public access to activity_logs" ON activity_logs;
+
 -- Policy สำหรับ table_bookings (อนุญาตให้ทุกคนอ่านและเขียนได้)
-CREATE POLICY IF NOT EXISTS "Allow public access to table_bookings" 
+CREATE POLICY "Allow public access to table_bookings" 
 ON table_bookings FOR ALL 
 TO public 
 USING (true) 
 WITH CHECK (true);
 
 -- Policy สำหรับ activity_logs (อนุญาตให้ทุกคนอ่านและเขียนได้)
-CREATE POLICY IF NOT EXISTS "Allow public access to activity_logs" 
+CREATE POLICY "Allow public access to activity_logs" 
 ON activity_logs FOR ALL 
 TO public 
 USING (true) 
