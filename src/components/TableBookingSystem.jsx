@@ -1,4 +1,5 @@
 import React from 'react';
+import '../theme.css';
 
 export default function TableBookingSystem() {
   return (
@@ -7,8 +8,20 @@ export default function TableBookingSystem() {
       <p className="text-center">Component under construction...</p>
     </div>
   );
+}
+import React from 'react';
 
-  const handleTableClick = (table) => {
+export default function TableBookingSystem() {
+  return (
+import './theme.css';
+
+export default function TableBookingSystem() {
+  return (
+    <div className="container mt-4">
+      <h2 className="text-center">Table Booking System</h2>
+      <p className="text-center">Component under construction...</p>
+    </div>
+  );
     setSelectedTable(table)
     if (table.booking) {
       setBookingData(table.booking)
@@ -94,6 +107,8 @@ export default function TableBookingSystem() {
     const wb = XLSX.utils.book_new()
 import React from 'react';
 
+import '../theme.css';
+
 export default function TableBookingSystem() {
   return (
     <div className="container mt-4">
@@ -102,4 +117,3 @@ export default function TableBookingSystem() {
     </div>
   );
 }
-          <div className="mx-2 text-center">
