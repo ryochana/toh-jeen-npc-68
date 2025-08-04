@@ -1,53 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import * as XLSX from 'xlsx';
-import { supabaseService } from '../services/supabaseService';
+import React from 'react';
 
-const TableBookingSystem = () => {
-  const [tables, setTables] = useState([])
-  const [selectedTable, setSelectedTable] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [bookingData, setBookingData] = useState({ name: '', phone: '', status: 'confirmed' })
-
-  // สร้างโต๊ะ 37 โต๊ะ ตาม 9 แถว
-  useEffect(() => {
-    const init = async () => {
-      // สร้างโครงสร้าง 9 แถว 37 โต๊ะ
-      const newTables = []
-      let tableNumber = 1
-      for (let row = 1; row <= 9; row++) {
-        const cols = row === 1 || row === 9 ? 3 : 5
-        for (let col = 1; col <= cols; col++) {
-          newTables.push({
-            id: tableNumber.toString().padStart(2, '0'),
-            displayName: `โต๊ะ ${tableNumber.toString().padStart(2, '0')}`,
-            row,
-            col,
-            booking: null,
-            position: 'inside'
-          })
-          tableNumber++
-        }
-      }
-      // โหลดข้อมูลจาก Supabase
-      let saved = []
-      try {
-        saved = await supabaseService.getAllTables()
-      } catch (err) {
-        console.error('Load tables error:', err)
-      }
-      // รวมข้อมูลการจอง
-      const merged = newTables.map(table => {
-        const rec = saved.find(r => r.table_id === table.id)
-        if (rec && rec.is_booked) {
-          return { ...table, booking: { name: rec.booking_name, phone: rec.booking_phone, status: rec.booking_status } }
-        }
-        return table
-      })
-      setTables(merged)
-    }
-    init()
-  }, [])
+export default function TableBookingSystem() {
+  return (
+    <div className="container mt-4">
+      <h2 className="text-center">Table Booking System</h2>
+      <p className="text-center">Component under construction...</p>
+    </div>
+  );
 
   const handleTableClick = (table) => {
     setSelectedTable(table)
@@ -253,34 +212,6 @@ const TableBookingSystem = () => {
                   onClick={() => setShowModal(false)}
                   className="btn mx-2"
                 >
-                  ❌ ปิด
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-              />
-
-              <label>💰 สถานะการจ่าย</label>
-              <select
-                value={bookingData.status}
-                onChange={e => setBookingData({ ...bookingData, status: e.target.value })}
-              >
-                <option value="confirmed">📝 จองแล้ว</option>
-                <option value="paid">💰 จ่ายแล้ว</option>
-              </select>
-
-              <div className="flex justify-center mt-4">
-                {selectedTable.booking && (
-                  <button type="button" onClick={handleCancelBooking} className="btn mx-2">
-                    🗑️ ยกเลิกการจอง
-                  </button>
-                )}
-                <button type="submit" className="btn mx-2">
-                  ✅ {selectedTable.booking ? 'อัพเดทข้อมูล' : 'จองโต๊ะ'}
-                </button>
-                <button type="button" onClick={() => setShowModal(false)} className="btn mx-2">
                   ❌ ปิด
                 </button>
               </div>
