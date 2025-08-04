@@ -9,10 +9,9 @@ export const supabaseService = {
   async getAllTables() {
     try {
       const { data, error } = await supabase
-        .from('tables')
+        .from('table_bookings')
         .select('*')
-        .order('id')
-      
+        .order('table_id')
       if (error) throw error
       return data || []
     } catch (error) {
@@ -21,17 +20,12 @@ export const supabaseService = {
     }
   },
 
-  async upsertTable(tableId, tableData) {
+  async upsertTable(record) {
     try {
       const { data, error } = await supabase
-        .from('tables')
-        .upsert({
-          id: tableId,
-          data: tableData,
-          updated_at: new Date().toISOString()
-        })
+        .from('table_bookings')
+        .upsert(record)
         .select()
-      
       if (error) throw error
       return data
     } catch (error) {
@@ -43,10 +37,9 @@ export const supabaseService = {
   async deleteTable(tableId) {
     try {
       const { error } = await supabase
-        .from('tables')
+        .from('table_bookings')
         .delete()
-        .eq('id', tableId)
-      
+        .eq('table_id', tableId)
       if (error) throw error
     } catch (error) {
       console.error('Error deleting table:', error)
