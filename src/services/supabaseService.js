@@ -24,7 +24,7 @@ export const supabaseService = {
     try {
       const { data, error } = await supabase
         .from('table_bookings')
-        .upsert(record)
+        .upsert(record, { onConflict: ['table_id'] })
         .select()
       if (error) throw error
       return data

@@ -139,7 +139,138 @@ const TableBookingSystem = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-4">
+    <main className="container mt-4">
+      {/* Summary Stats */}
+      <section className="panel mb-4">
+        <div className="flex justify-center items-center mb-4">
+          <div className="mx-2 text-center">
+            <div>🟢 ว่าง</div>
+            <div>{tables.filter(t => !t.booking).length} โต๊ะ</div>
+          </div>
+          <div className="mx-2 text-center">
+            <div>🔴 จองแล้ว</div>
+            <div>{tables.filter(t => t.booking).length} โต๊ะ</div>
+          </div>
+          <div className="mx-2 text-center">
+            <div>📊 รวม</div>
+            <div>{tables.length} โต๊ะ</div>
+          </div>
+        </div>
+        <div className="text-center">
+          <button onClick={exportToExcel} className="btn">📊 ส่งออกรายงาน Excel</button>
+        </div>
+      </section>
+
+      {/* Stage */}
+      <section className="panel mb-4 text-center">
+        <div className="text-6xl mb-4">🎭</div>
+        <h2 className="text-center mb-2">เวทีแสดง</h2>
+        <p>พื้นที่แสดงและพิธีกรรม</p>
+      </section>
+
+      {/* Table Layout */}
+      <section className="panel mb-4">
+        <div className="text-center mb-4">
+          <h2>🪑 โต๊ะในหอประชุม</h2>
+          <p>การจัดวาง 9 แถว รวม 37 โต๊ะ</p>
+        </div>
+        {Array.from({ length: 9 }, (_, rowIndex) => {
+          const row = rowIndex + 1
+          const rowTables = tables.filter(t => t.row === row)
+          const cols = row === 1 || row === 9 ? 3 : 5
+          return (
+            <div key={row} className="mb-4">
+              <div className="text-center mb-2 font-bold">🏛️ แถวที่ {row} ({rowTables.length} โต๊ะ)</div>
+              <div className="table-grid" style={{ gridTemplateColumns: row === 1 || row === 9 ? 'repeat(3, 1fr)' : 'repeat(3, 1fr) 80px repeat(2, 1fr)' }}>
+                {rowTables.map(table => (
+                  <div
+                    key={table.id}
+                    className={`table-cell ${table.booking ? 'status-booked' : 'status-available'}`}
+                    onClick={() => handleTableClick(table)}
+                  >
+                    <div className="mb-2">🪑</div>
+                    <div className="font-bold mb-1">{table.displayName}</div>
+                    {table.booking ? (
+                      <>
+                        <div>👤 {table.booking.name}</div>
+                        {table.booking.phone && <div>📞 {table.booking.phone}</div>}
+                        <div>{table.booking.status === 'paid' ? '💰 จ่ายแล้ว' : '📝 จองแล้ว'}</div>
+                      </>
+                    ) : (
+                      <div>✨ ว่าง</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </section>
+
+      {/* Booking Modal */}
+      {showModal && selectedTable && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <header className="mb-4 text-center">
+              <h3 className="font-bold mb-2">{selectedTable.booking ? 'แก้ไขการจอง' : 'จองโต๊ะใหม่'}</h3>
+              <p>ID: {selectedTable.id}</p>
+              <p>ชื่อโต๊ะ: {selectedTable.displayName}</p>
+            </header>
+            <form onSubmit={e => { e.preventDefault(); handleBooking(); }}>
+              <label>Table ID</label>
+              <input type="text" value={selectedTable.id} readOnly />
+              <label>Display Name</label>
+              <input type="text" value={selectedTable.displayName} readOnly />
+              <label>Row</label>
+              <input type="text" value={selectedTable.row} readOnly />
+              <label>Column</label>
+              <input type="text" value={selectedTable.col} readOnly />
+              <label>Position</label>
+              <input type="text" value={selectedTable.position} readOnly />
+
+              <label>👤 ชื่อผู้จอง *</label>
+              <input
+                type="text"
+                value={bookingData.name}
+                onChange={e => setBookingData({ ...bookingData, name: e.target.value })}
+                required
+              />
+
+              <label>📱 เบอร์โทรศัพท์</label>
+              <input
+                type="text"
+                value={bookingData.phone}
+                onChange={e => setBookingData({ ...bookingData, phone: e.target.value })}
+              />
+
+              <label>💰 สถานะการจ่าย</label>
+              <select
+                value={bookingData.status}
+                onChange={e => setBookingData({ ...bookingData, status: e.target.value })}
+              >
+                <option value="confirmed">📝 จองแล้ว</option>
+                <option value="paid">💰 จ่ายแล้ว</option>
+              </select>
+
+              <div className="flex justify-center mt-4">
+                {selectedTable.booking && (
+                  <button type="button" onClick={handleCancelBooking} className="btn mx-2">
+                    🗑️ ยกเลิกการจอง
+                  </button>
+                )}
+                <button type="submit" className="btn mx-2">
+                  ✅ {selectedTable.booking ? 'อัพเดทข้อมูล' : 'จองโต๊ะ'}
+                </button>
+                <button type="button" onClick={() => setShowModal(false)} className="btn mx-2">
+                  ❌ ปิด
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  )
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-amber-200 p-8 text-center">

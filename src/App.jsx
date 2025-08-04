@@ -1,13 +1,17 @@
 import React from 'react'
 import { Toaster } from 'react-hot-toast'
 import TableBookingSystem from './components/TableBookingSystem'
-import './App.css'
+import './index.css'
 
 function App() {
   return (
-    <div className="App">
+    <div className="App container">
+      <header>
+        <h1>จองโต๊ะผ้าป่า</h1>
+        <p>โรงเรียนบ้านโนนผักชี</p>
+      </header>
       <TableBookingSystem />
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,

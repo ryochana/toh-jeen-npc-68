@@ -1,0 +1,1424 @@
+/* TableBookingSystem.css - Updated for new layout */
+.table-booking-system {
+  background: rgba(10, 10, 10, 0.8);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  gap: 30px;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* Hall Container */
+.hall-container {
+  margin-bottom: 40px;
+}
+
+.stage {
+  background: var(--neon-secondary);
+  color: var(--bg-dark);
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+}
+
+.stage h3 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Tables Grid - Updated for 9 rows layout */
+.tables-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.table-section {
+  display: flex;
+  gap: 8px;
+}
+
+.left-section {
+  margin-right: 8px;
+  min-width: 240px; /* Space for 3 tables */
+  justify-content: flex-start;
+}
+
+.right-section {
+  margin-left: 8px;
+  min-width: 160px; /* Space for 2 tables */
+  justify-content: flex-end;
+}
+
+.aisle {
+  width: 40px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.aisle-line {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(180deg, #cbd5e0, #a0aec0);
+  border-radius: 2px;
+  position: relative;
+}
+
+.aisle-line::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #4a5568;
+  border-radius: 50%;
+}
+
+/* Empty space for rows 1 and 9 */
+.empty-space {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.empty-label {
+  padding: 8px 16px;
+  background: rgba(156, 163, 175, 0.1);
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Table Items */
+.table-item {
+  width: 70px;
+  height: 70px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 4px;
+}
+
+.table-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.table-available {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.table-available:hover {
+  background: linear-gradient(135deg, #c3e6cb, #b3d9c1);
+}
+
+.table-booked {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.table-booked:hover {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+}
+
+.table-paid {
+  background: linear-gradient(135deg, #cce5ff, #b3d9ff);
+  border-color: #007bff;
+  color: #004085;
+}
+
+.table-paid:hover {
+  background: linear-gradient(135deg, #b3d9ff, #99ccff);
+}
+
+.table-number {
+  font-weight: bold;
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.table-status {
+  font-size: 0.55rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.booker-name {
+  font-size: 0.45rem;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+/* Control Panel - New section for table management */
+.control-panel {
+  background: rgba(31, 31, 31, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid var(--neon-primary);
+}
+
+.control-section {
+  margin-bottom: 20px;
+}
+
+.control-section:last-child {
+  margin-bottom: 0;
+}
+
+.control-section h4 {
+  margin: 0 0 15px 0;
+  color: #4a5568;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: white;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+
+.drag-active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.drag-inactive {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+}
+
+.drag-active:hover, .drag-inactive:hover {
+  transform: translateY(-1px);
+}
+
+.activity-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.activity-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-1px);
+}
+
+.undo-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.undo-btn:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-1px);
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+}
+
+/* Table Control Items */
+.table-control-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-control-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.move-out-btn, .delete-table-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.move-out-btn:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.delete-table-btn:hover {
+  background: #ef4444;
+  color: white;  
+  border-color: #ef4444;
+}
+
+/* Outside Tables */
+.outside-tables {
+  width: 300px;
+  padding: 25px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e0;
+  height: fit-content;
+}
+
+.outside-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.outside-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a5568;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.outside-tables-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.outside-table-actions {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.table-item:hover .outside-table-actions {
+  opacity: 1;
+}
+
+.move-in-btn, .delete-outside-btn {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.move-in-btn:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.delete-outside-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+/* Summary */
+.summary {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 12px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+.summary-icon {
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-icon.available {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.summary-icon.booked {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.summary-icon.paid {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.summary-item.status {
+  padding: 8px 12px;
+}
+
+.online-status, .offline-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.online-status {
+  color: #10b981;
+}
+
+.offline-status {
+  color: #f59e0b;
+}
+
+/* Activity Log Modal */
+.activity-log-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 10000 !important;
+}
+
+.activity-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.activity-log-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.activity-log-content {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.no-activity {
+  text-align: center;
+  color: #6b7280;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.activity-message {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.activity-log-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.clear-log-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.clear-log-btn:hover {
+  background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-booking-system {
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .outside-tables {
+    width: 100%;
+  }
+  
+  .control-buttons {
+    flex-direction: column;
+  }
+  
+  .control-btn {
+    justify-content: center;
+  }
+  
+  .summary {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Top Controls */
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.top-left-controls, .top-right-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.online-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #10b981;
+  font-weight: 500;
+}
+
+.offline-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.last-sync {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.sync-btn {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sync-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.sync-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.activity-log-btn, .undo-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.activity-log-btn:hover, .undo-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.undo-btn {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.undo-btn:hover {
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+.hall-container {
+  margin-bottom: 40px;
+}
+
+.stage {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+}
+
+.stage h3 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.tables-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.table-section {
+  display: flex;
+  gap: 8px;
+}
+
+.left-section {
+  margin-right: 8px;
+}
+
+.right-section {
+  margin-left: 8px;
+}
+
+.aisle {
+  width: 40px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.aisle-line {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(180deg, #cbd5e0, #a0aec0);
+  border-radius: 2px;
+  position: relative;
+}
+
+.aisle-line::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #4a5568;
+  border-radius: 50%;
+}
+
+.table-item {
+  width: 70px;
+  height: 70px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 4px;
+}
+
+.table-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.table-available {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.table-available:hover {
+  background: linear-gradient(135deg, #c3e6cb, #b3d9c1);
+}
+
+.table-booked {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.table-booked:hover {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+}
+
+.table-paid {
+  background: linear-gradient(135deg, #cce5ff, #b3d9ff);
+  border-color: #007bff;
+  color: #004085;
+}
+
+.table-paid:hover {
+  background: linear-gradient(135deg, #b3d9ff, #99ccff);
+}
+
+.table-number {
+  font-weight: bold;
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.table-status {
+  font-size: 0.55rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.booker-name {
+  font-size: 0.45rem;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.table-actions {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.table-item:hover .table-actions {
+  opacity: 1;
+}
+
+.move-btn, .delete-btn {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.move-btn:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.outside-tables {
+  width: 300px;
+  padding: 25px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e0;
+  height: fit-content;
+}
+
+.outside-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.outside-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4a5568;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.add-table-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.add-table-btn:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+
+.outside-tables-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.summary {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 12px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+.summary-icon {
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-icon.available {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.summary-icon.booked {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.summary-icon.paid {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #ee5a24, #d63031);
+  transform: translateY(-1px);
+}
+
+.restore-btn {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.restore-btn:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+
+.export-btn, .console-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.export-btn:hover, .console-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.console-btn {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.console-btn:hover {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.magic-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.magic-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-1px);
+}
+
+.magic-btn.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+  transform: translateY(-1px);
+}
+
+/* โหมดลาก */
+.table-item.drag-mode {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.table-item.drag-mode:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.table-item.dragged {
+  opacity: 0.8;
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+  border: 3px solid #8b5cf6 !important;
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff) !important;
+  color: #7c3aed !important;
+  z-index: 100;
+}
+
+.table-item.drag-mode::after {
+  content: "🎯 คลิกเพื่อลาก";
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(139, 92, 246, 0.9);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 101;
+}
+
+.table-item.drag-mode:hover::after {
+  opacity: 1;
+}
+
+.table-item.dragged::after {
+  content: "✨ เลือกแล้ว - คลิกตำแหน่งที่ต้องการ";
+  opacity: 1;
+  background: rgba(34, 197, 94, 0.9);
+}
+
+.drop-zone {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed #8b5cf6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.drop-zone:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #7c3aed;
+  transform: scale(1.05);
+}
+
+.outside-drop {
+  width: 100%;
+  height: 60px;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+/* ซ่อนปุ่มขณะอยู่ในโหมดลาก */
+.table-item.drag-mode .table-actions {
+  display: none;
+}
+
+/* ป้องกันการ scroll ของ body เมื่อ modal เปิด */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Modal Overlay สำหรับ Activity Log */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+  backdrop-filter: blur(8px) !important;
+  animation: fadeIn 0.3s ease;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Activity Log Modal */
+.activity-log-modal {
+  background: white !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8) !important;
+  margin: 0 !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+}
+
+.activity-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 40px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.activity-log-header h3 {
+  margin: 0;
+  color: #1a202c;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #1a202c;
+}
+
+.activity-log-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.no-activity {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 40px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.activity-message {
+  font-weight: 500;
+  color: #1a202c;
+  flex: 1;
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.activity-log-footer {
+  padding: 30px 40px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.clear-log-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-log-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 1200px) {
+  .table-booking-system {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .outside-tables {
+    width: 100%;
+    order: 2; /* ให้อยู่ด้านล่างในมือถือ แต่ยังคงเป็น "ด้านขวา" ในแนวคิด */
+  }
+  
+  .outside-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .main-content {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-booking-system {
+    padding: 20px;
+  }
+  
+  .table-item {
+    width: 50px;
+    height: 50px;
+    font-size: 0.6rem;
+  }
+  
+  .table-number {
+    font-size: 0.65rem;
+  }
+  
+  .table-status {
+    font-size: 0.45rem;
+  }
+  
+  .booker-name {
+    font-size: 0.4rem;
+  }
+  
+  .aisle {
+    width: 30px;
+    height: 50px;
+  }
+  
+  .aisle-line {
+    height: 40px;
+  }
+  
+  .summary {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Activity Log Modal Responsive */
+@media (max-width: 768px) {
+  .activity-log-modal {
+    border-radius: 12px;
+  }
+  
+  .activity-log-header {
+    padding: 16px;
+  }
+  
+  .activity-log-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .activity-log-content {
+    padding: 16px;
+  }
+  
+  .activity-item {
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .activity-message {
+    font-size: 0.9rem;
+  }
+  
+  .activity-time {
+    font-size: 0.75rem;
+    align-self: flex-end;
+  }
+  
+  .activity-log-footer {
+    padding: 16px;
+  }
+  
+  .clear-log-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-log-modal {
+    border-radius: 8px;
+  }
+  
+  .activity-log-header {
+    padding: 12px;
+  }
+  
+  .activity-log-header h3 {
+    font-size: 1rem;
+  }
+  
+  .activity-log-content {
+    padding: 12px;
+  }
+  
+  .activity-item {
+    padding: 8px;
+  }
+  
+  .activity-message {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  
+  .activity-time {
+    font-size: 0.7rem;
+  }
+  
+  .activity-log-footer {
+    padding: 12px;
+  }
+}
