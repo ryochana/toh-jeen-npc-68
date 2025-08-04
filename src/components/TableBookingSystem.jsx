@@ -125,8 +125,10 @@ const TableBookingSystem = () => {
       
       if (hasSupabaseConfig) {
         try {
-          // พยายามโหลดจาก Supabase ก่อน
+          console.log('🔄 โหลดข้อมูลจาก Supabase...')
+          // โหลดจาก Supabase เป็นหลัก
           const supabaseData = await supabaseService.syncToLocalStorage()
+          
           if (supabaseData.tables.length > 0 || supabaseData.outsideTables.length > 0) {
             setTables(supabaseData.tables)
             setOutsideTables(supabaseData.outsideTables)
@@ -140,66 +142,111 @@ const TableBookingSystem = () => {
             }))
             setActivityLog(convertedLogs)
             
+            // บันทึกลง localStorage เป็น cache
+            localStorage.setItem('tableBookingData', JSON.stringify({
+              tables: supabaseData.tables,
+              outsideTables: supabaseData.outsideTables,
+              activityLog: convertedLogs
+            }))
+            
             console.log('✅ โหลดข้อมูลจาก Supabase สำเร็จ')
             addToActivityLog('📥 โหลดข้อมูลจาก Supabase สำเร็จ')
             return
+          } else {
+            // ถ้า Supabase ว่าง ให้สร้างโต๊ะเริ่มต้น
+            console.log('ℹ️ Supabase ว่าง - สร้างโต๊ะเริ่มต้น')
+            initializeTables()
+            return
           }
         } catch (error) {
-          console.warn('⚠️ ไม่สามารถโหลดจาก Supabase ได้, กำลังโหลดจาก localStorage:', error)
-        }
-      }
-
-      // โหลดจาก localStorage
-      const savedData = localStorage.getItem('tableBookingData')
-      if (savedData) {
-        try {
-          const { tables: savedTables, outsideTables: savedOutside, activityLog: savedLog } = JSON.parse(savedData)
-          setTables(savedTables || [])
-          setOutsideTables(savedOutside || [])
-          setActivityLog(savedLog || [])
-          console.log('✅ โหลดข้อมูลจาก localStorage สำเร็จ')
-        } catch (error) {
-          console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูลจาก localStorage:', error)
+          console.error('❌ ไม่สามารถโหลดจาก Supabase ได้:', error)
+          toast.error('❌ ไม่สามารถเชื่อมต่อ Supabase ได้')
+          
+          // ลองโหลดจาก localStorage เป็นตัวสำรอง
+          const savedData = localStorage.getItem('tableBookingData')
+          if (savedData) {
+            try {
+              const { tables: savedTables, outsideTables: savedOutside, activityLog: savedLog } = JSON.parse(savedData)
+              setTables(savedTables || [])
+              setOutsideTables(savedOutside || [])
+              setActivityLog(savedLog || [])
+              console.log('⚠️ ใช้ข้อมูลสำรองจาก localStorage')
+              toast.warning('⚠️ ใช้ข้อมูลสำรองจาก localStorage')
+              return
+            } catch (parseError) {
+              console.error('❌ ข้อมูล localStorage เสียหาย:', parseError)
+            }
+          }
+          
+          // ถ้าทั้งสองไม่ได้ ให้สร้างใหม่
           initializeTables()
         }
       } else {
-        initializeTables()
+        // ถ้าไม่มี Supabase ให้แจ้งเตือน
+        console.warn('⚠️ ไม่พบการตั้งค่า Supabase - กรุณาตั้งค่า .env.local')
+        toast.error('❌ กรุณาตั้งค่า Supabase ใน .env.local')
+        
+        // ใช้ localStorage เป็นสำรอง
+        const savedData = localStorage.getItem('tableBookingData')
+        if (savedData) {
+          try {
+            const { tables: savedTables, outsideTables: savedOutside, activityLog: savedLog } = JSON.parse(savedData)
+            setTables(savedTables || [])
+            setOutsideTables(savedOutside || [])
+            setActivityLog(savedLog || [])
+            console.log('⚠️ ใช้ข้อมูลจาก localStorage')
+          } catch (error) {
+            console.error('❌ ข้อมูล localStorage เสียหาย:', error)
+            initializeTables()
+          }
+        } else {
+          initializeTables()
+        }
       }
     }
 
     loadData()
   }, [])
 
-  // บันทึกข้อมูลลง localStorage และ Supabase
+  // บันทึกข้อมูลลง Supabase เป็นหลัก
   useEffect(() => {
     if (tables.length > 0 || outsideTables.length > 0) {
-      console.log('💾 กำลังบันทึกข้อมูลลง localStorage:', { 
-        tables: tables.length, 
-        outsideTables: outsideTables.length, 
-        activityLog: activityLog.length,
-        timestamp: new Date().toLocaleString('th-TH')
-      })
-      
-      // บันทึกลง localStorage
+      // บันทึกลง localStorage เป็น cache ทันที
       localStorage.setItem('tableBookingData', JSON.stringify({
         tables,
         outsideTables,
         activityLog
       }))
+      
+      console.log('💾 บันทึกข้อมูลลง localStorage (cache):', { 
+        tables: tables.length, 
+        outsideTables: outsideTables.length, 
+        activityLog: activityLog.length,
+        timestamp: new Date().toLocaleString('th-TH')
+      })
 
-      // บันทึกลง Supabase (ถ้าเปิดใช้งาน)
+      // บันทึกลง Supabase เป็นหลัก
       if (isSupabaseEnabled && !isSyncing) {
+        console.log('🔄 กำลังบันทึกไป Supabase (หลัก)...')
         syncToSupabase(false)
+      } else if (!isSupabaseEnabled) {
+        console.warn('⚠️ ไม่สามารถบันทึกไป Supabase ได้ - ไม่ได้ตั้งค่า')
+        toast.warning('⚠️ กรุณาตั้งค่า Supabase เพื่อความปลอดภัยของข้อมูล')
       }
     }
   }, [tables, outsideTables, activityLog])
 
   const syncToSupabase = async (showNotification = true) => {
-    if (!isSupabaseEnabled || isSyncing) return
+    if (!isSupabaseEnabled || isSyncing) {
+      if (showNotification && !isSupabaseEnabled) {
+        toast.error('❌ Supabase ไม่ได้ถูกตั้งค่า')
+      }
+      return
+    }
 
     setIsSyncing(true)
     try {
-      console.log('🔄 เริ่ม Sync ข้อมูลไป Supabase...', {
+      console.log('🔄 เริ่ม Sync ข้อมูลไป Supabase (หลัก)...', {
         tablesCount: tables.length,
         outsideTablesCount: outsideTables.length,
         bookedTables: [...tables, ...outsideTables].filter(t => t.booking).length
@@ -207,16 +254,18 @@ const TableBookingSystem = () => {
       
       await supabaseService.syncFromLocalStorage({ tables, outsideTables })
       setLastSyncTime(new Date())
-      console.log('✅ Sync ไป Supabase สำเร็จ - ข้อมูลถูกบันทึกแล้ว')
+      console.log('✅ Sync ไป Supabase สำเร็จ - ข้อมูลถูกบันทึกในคลาวด์แล้ว ☁️')
       
       if (showNotification) {
-        toast.success('📊 Sync ข้อมูลไป Supabase สำเร็จ')
+        toast.success('☁️ บันทึกข้อมูลไป Supabase สำเร็จ')
       }
     } catch (error) {
       console.error('❌ Sync ไป Supabase ล้มเหลว:', error)
       if (showNotification) {
-        toast.error('❌ Sync ไป Supabase ล้มเหลว: ' + error.message)
+        toast.error('❌ ไม่สามารถบันทึกไป Supabase ได้: ' + error.message)
       }
+      // แจ้งเตือนให้ผู้ใช้ทราบว่าข้อมูลอาจหาย
+      toast.warning('⚠️ ข้อมูลอยู่ในเครื่องเท่านั้น - อาจหายเมื่อล้าง cache')
     } finally {
       setIsSyncing(false)
     }
@@ -230,6 +279,7 @@ const TableBookingSystem = () => {
 
     setIsSyncing(true)
     try {
+      console.log('📥 กำลังดึงข้อมูลล่าสุดจาก Supabase...')
       const supabaseData = await supabaseService.syncToLocalStorage()
       setTables(supabaseData.tables)
       setOutsideTables(supabaseData.outsideTables)
@@ -243,11 +293,19 @@ const TableBookingSystem = () => {
       }))
       setActivityLog(convertedLogs)
       
+      // อัพเดท localStorage cache
+      localStorage.setItem('tableBookingData', JSON.stringify({
+        tables: supabaseData.tables,
+        outsideTables: supabaseData.outsideTables,
+        activityLog: convertedLogs
+      }))
+      
       addToActivityLog('📥 ดึงข้อมูลจาก Supabase สำเร็จ')
-      toast.success('📥 ดึงข้อมูลจาก Supabase สำเร็จ')
+      console.log('✅ ดึงข้อมูลจาก Supabase สำเร็จ')
+      toast.success('📥 ดึงข้อมูลล่าสุดจาก Supabase สำเร็จ')
     } catch (error) {
       console.error('❌ ดึงข้อมูลจาก Supabase ล้มเหลว:', error)
-      toast.error('❌ ดึงข้อมูลจาก Supabase ล้มเหลว')
+      toast.error('❌ ไม่สามารถดึงข้อมูลจาก Supabase ได้: ' + error.message)
     } finally {
       setIsSyncing(false)
     }
@@ -770,9 +828,9 @@ const TableBookingSystem = () => {
                 <span className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
                   <Database size={16} className="mr-1" />
                   {isSupabaseEnabled ? (
-                    <span className="text-green-600 font-medium">🟢 Supabase Connected</span>
+                    <span className="text-green-600 font-medium">☁️ Supabase เป็นหลัก</span>
                   ) : (
-                    <span className="text-orange-600 font-medium">🟡 localStorage Only</span>
+                    <span className="text-red-600 font-medium">⚠️ ไม่มี Supabase</span>
                   )}
                 </span>
                 
@@ -862,7 +920,7 @@ const TableBookingSystem = () => {
               </button>
             )}
 
-            {isSupabaseEnabled && (
+            {isSupabaseEnabled ? (
               <>
                 <button
                   onClick={() => syncToSupabase(true)}
@@ -870,7 +928,7 @@ const TableBookingSystem = () => {
                   className="flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Upload size={18} className="mr-2" />
-                  {isSyncing ? '🔄 Syncing...' : '⬆️ Sync ไป Supabase'}
+                  {isSyncing ? '🔄 กำลังบันทึก...' : '☁️ บันทึกไป Supabase'}
                 </button>
                 
                 <button
@@ -879,9 +937,14 @@ const TableBookingSystem = () => {
                   className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download size={18} className="mr-2" />
-                  {isSyncing ? '🔄 Syncing...' : '⬇️ ดึงจาก Supabase'}
+                  {isSyncing ? '🔄 กำลังดึงข้อมูล...' : '📥 ดึงจาก Supabase'}
                 </button>
               </>
+            ) : (
+              <div className="flex items-center px-6 py-3 bg-red-100 text-red-800 rounded-lg border border-red-300">
+                <Database size={18} className="mr-2" />
+                ⚠️ กรุณาตั้งค่า Supabase
+              </div>
             )}
             
             <button
